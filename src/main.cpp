@@ -1,7 +1,7 @@
-# include <iostream>
+#include <iostream>
+#include "bitboard.hpp"
 
 int main() {
-    std::cout << "Hello, World!" <<std::endl;
-    return 0;
-
+    Bitboard bb = all_one_bb();
+    bb.print_board();
 }
