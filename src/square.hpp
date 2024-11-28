@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cassert>
+#include <iostream>  // debugging
+
 
 #include "overloadEnumOperators.hpp"
 #include "common.hpp"

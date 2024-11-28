@@ -51,21 +51,21 @@ public:
     // AND operator
     Bitboard operator &= (const Bitboard& bb) {
         this->p_[0] &= bb.p(0);
-        this->p_[1] &= bb.p(0);
+        this->p_[1] &= bb.p(1);
         return *this;
     }
 
     // OR operator
     Bitboard operator |= (const Bitboard& bb) {
         this->p_[0] |= bb.p(0);
-        this->p_[1] |= bb.p(0);
+        this->p_[1] |= bb.p(1);
         return *this;
     }
 
     // XOR operator
     Bitboard operator ^= (const Bitboard& bb) {
         this->p_[0] ^= bb.p(0);
-        this->p_[1] ^= bb.p(0);
+        this->p_[1] ^= bb.p(1);
         return *this;
     }
 
@@ -139,7 +139,7 @@ public:
     void print_board() const {
         // For each rank (row)
         for (Rank r = Rank9; r >= Rank1; --r) {
-            std::cout << (r);  // Print row number
+            std::cout << (r+1);  // Print row number
             // For each file (column)
             for (File f = FileA; f < FileNum; ++f)
                 // Print X for set bits, . for unset
@@ -161,3 +161,4 @@ inline Bitboard get_square_mask(const Square sq)  { return SquareMaskBB[sq]; }
 
 inline Bitboard all_one_bb() { return Bitboard(UINT64_C(0x7FFFFFFFFFFFFFFF), UINT64_C(0x000000000003FFFF)); }
 inline Bitboard all_zero_bb() { return Bitboard(0, 0); }
+inline Bitboard start_pos() { return Bitboard(UINT64_C(0x04223FF888402038), UINT64_C(0x0000000000007010)); }
