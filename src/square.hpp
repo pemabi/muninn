@@ -29,13 +29,19 @@ OVERLOAD_ENUM_OPERATORS(Square);
 
 enum File  {
     FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH, FileI,
-    FileNum
+    FileNum,
+    FileDeltaE = -1, FileDeltaW = 1,  // for iterating offset when calcaulting moves / attacks on the fly
+    FileAWall = FileA + FileDeltaE,
+    FileIWall = FileI + FileDeltaW
 };
 OVERLOAD_ENUM_OPERATORS(File);
 
 enum Rank  {
     Rank1, Rank2, Rank3, Rank4, Rank5, Rank6, Rank7, Rank8, Rank9,
-    RankNum
+    RankNum,
+    RankDeltaN = 1, RankDeltaS= -1,
+    Rank1Wall = Rank1 + RankDeltaS,   // for iterating offset when calcaulting moves / attacks on the fly
+    Rank9Wall = Rank9 + RankDeltaN
 };
 OVERLOAD_ENUM_OPERATORS(Rank);
 
