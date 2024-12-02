@@ -86,3 +86,12 @@ const Bitboard SquareMaskBB[SquareNum] = {
     Bitboard(                   0, UINT64_C(1) << 16),     // 79, SQH9
     Bitboard(                   0, UINT64_C(1) << 17),     // 80, SQI9
 };
+
+
+const Bitboard FileMask[FileNum] = {
+    File1Mask, File2Mask, File3Mask, File4Mask, File5Mask, File6Mask, File7Mask, File8Mask, File9Mask
+};
+
+const Bitboard RankMask[RankNum] = {
+    Rank1Mask, Rank2Mask, Rank3Mask, Rank4Mask, Rank5Mask, Rank6Mask, Rank7Mask, Rank8Mask, Rank9Mask
+};

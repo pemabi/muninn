@@ -162,3 +162,67 @@ inline Bitboard get_square_mask(const Square sq)  { return SquareMaskBB[sq]; }
 inline Bitboard all_one_bb() { return Bitboard(UINT64_C(0x7FFFFFFFFFFFFFFF), UINT64_C(0x000000000003FFFF)); }
 inline Bitboard all_zero_bb() { return Bitboard(0, 0); }
 inline Bitboard start_pos() { return Bitboard(UINT64_C(0x04223FF888402038), UINT64_C(0x0000000000007010)); }
+
+const Bitboard File1Mask = Bitboard(UINT64_C(0x40201008040201) << 0, UINT64_C(0x201) << 0);
+const Bitboard File2Mask = Bitboard(UINT64_C(0x40201008040201) << 1, UINT64_C(0x201) << 1);
+const Bitboard File3Mask = Bitboard(UINT64_C(0x40201008040201) << 2, UINT64_C(0x201) << 2);
+const Bitboard File4Mask = Bitboard(UINT64_C(0x40201008040201) << 3, UINT64_C(0x201) << 3);
+const Bitboard File5Mask = Bitboard(UINT64_C(0x40201008040201) << 4, UINT64_C(0x201) << 4);
+const Bitboard File6Mask = Bitboard(UINT64_C(0x40201008040201) << 5, UINT64_C(0x201) << 5);
+const Bitboard File7Mask = Bitboard(UINT64_C(0x40201008040201) << 6, UINT64_C(0x201) << 6);
+const Bitboard File8Mask = Bitboard(UINT64_C(0x40201008040201) << 7, UINT64_C(0x201) << 7);
+const Bitboard File9Mask = Bitboard(UINT64_C(0x40201008040201) << 8, UINT64_C(0x201) << 8);
+const Bitboard File10Mask = Bitboard(UINT64_C(0x40201008040201) << 9, UINT64_C(0x201) << 9);
+
+const Bitboard Rank1Mask = Bitboard(UINT64_C(0x1ff) << (9 * 0), 0);
+const Bitboard Rank2Mask = Bitboard(UINT64_C(0x1ff) << (9 * 1), 0);
+const Bitboard Rank3Mask = Bitboard(UINT64_C(0x1ff) << (9 * 2), 0);
+const Bitboard Rank4Mask = Bitboard(UINT64_C(0x1ff) << (9 * 3), 0);
+const Bitboard Rank5Mask = Bitboard(UINT64_C(0x1ff) << (9 * 4), 0);
+const Bitboard Rank6Mask = Bitboard(UINT64_C(0x1ff) << (9 * 5), 0);
+const Bitboard Rank7Mask = Bitboard(UINT64_C(0x1ff) << (9 * 6), 0);
+const Bitboard Rank8Mask = Bitboard(0, UINT64_C(0x1ff) << (9 * 0));
+const Bitboard Rank9Mask = Bitboard(0, UINT64_C(0x1ff) << (9 * 1));
+
+extern const Bitboard FileMask[FileNum];
+extern const Bitboard RankMask[RankNum];
+
+inline Bitboard file_mask(const File f) { return FileMask[f]; }
+
+template <File F> inline Bitboard file_mask() {
+    static_assert(FileBegin <= F && F < FileNum, "");
+    return (F == FileA ? File1Mask
+    : F == FileB ? File2Mask
+    : F == FileC ? File3Mask
+    : F == FileD ? File4Mask
+    : F == FileE ? File5Mask
+    : F == FileF ? File6Mask
+    : F == FileG ? File7Mask
+    : F == FileH ? File8Mask
+    : File9Mask);
+}
+
+inline Bitboard square_file_mask(const Square sq) {
+    const File f = sq_to_file(sq);
+    return file_mask(f);
+}
+
+inline Bitboard rank_mask(const Rank r) { return RankMask[r]; }
+
+template <Rank R> inline Bitboard rank_mask() {
+    static_assert(RankBegin <= R && R < RankNum, "");
+    return (R == Rank1 ? Rank1Mask
+    : R == Rank2 ? Rank2Mask
+    : R == Rank3 ? Rank3Mask
+    : R == Rank4 ? Rank4Mask
+    : R == Rank5 ? Rank5Mask
+    : R == Rank6 ? Rank6Mask
+    : R == Rank7 ? Rank7Mask
+    : R == Rank8 ? Rank8Mask
+    : Rank9Mask);
+}
+
+inline Bitboard square_rank_mask(const Square sq) {
+    const Rank r = sq_to_rank(sq);
+    return rank_mask(r);
+}

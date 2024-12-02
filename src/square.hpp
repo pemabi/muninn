@@ -31,8 +31,7 @@ enum File  {
     FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH, FileI,
     FileNum,
     FileDeltaE = -1, FileDeltaW = 1,  // for iterating offset when calcaulting moves / attacks on the fly
-    FileAWall = FileA + FileDeltaE,
-    FileIWall = FileI + FileDeltaW
+    FileBegin = 0
 };
 OVERLOAD_ENUM_OPERATORS(File);
 
@@ -40,8 +39,7 @@ enum Rank  {
     Rank1, Rank2, Rank3, Rank4, Rank5, Rank6, Rank7, Rank8, Rank9,
     RankNum,
     RankDeltaN = 1, RankDeltaS= -1,
-    Rank1Wall = Rank1 + RankDeltaS,   // for iterating offset when calcaulting moves / attacks on the fly
-    Rank9Wall = Rank9 + RankDeltaN
+    RankBegin = 0
 };
 OVERLOAD_ENUM_OPERATORS(Rank);
 
@@ -87,3 +85,26 @@ inline Rank sq_to_rank(const Square s)  {
     assert(is_in_square(s));
     return SquareToRank[s];
 }
+
+inline bool is_same_rank(const Square sq1, const Square sq2) {
+    assert(is_in_square(sq1));
+    assert(is_in_square(sq2));
+    return sq_to_rank(sq1) == sq_to_rank(sq2);
+}
+
+inline bool is_same_file(const Square sq1, const Square sq2)  {
+    assert(is_in_square(sq1));
+    assert(is_in_square(sq2));
+    return sq_to_file(sq1) == sq_to_file(sq2);
+}
+
+enum SquareDelta {
+    DeltaNothing = 0,
+    DeltaN = -1, DeltaE = -9, DeltaS = 1, DeltaW = 9,
+};
+OVERLOAD_ENUM_OPERATORS(SquareDelta);
+
+inline Square operator + (const Square lhs, const SquareDelta rhs) { return lhs + static_cast<Square>(rhs); }
+inline void operator += (Square& lhs, const SquareDelta rhs) { lhs = lhs + static_cast<Square>(rhs); }
+inline Square operator - (const Square lhs, const SquareDelta rhs) { return lhs - static_cast<Square>(rhs); }
+inline void operator -= (Square& lhs, const SquareDelta rhs) { lhs = lhs - static_cast<Square>(rhs); }

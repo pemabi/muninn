@@ -1,14 +1,12 @@
 #include <iostream>
 #include "bitboard.hpp"
+#include "init.hpp"
 
 int main() {
-    std::cout << "ONES:\n";
-    Bitboard bb = all_one_bb();
-    bb.print_board();
-    std::cout << "\n\nZEROS:\n";
-    bb = all_zero_bb();
-    bb.print_board();
-    std::cout << "\n\nSTART POS:\n";
-    bb = start_pos();
-    bb.print_board();
+    std::cout << "BLOCKER MASKS:\n";
+
+    for (Square sq = SQA1; sq < SquareNum; ++sq)  {
+        Bitboard bb = build_blocker_mask(sq);
+        bb.print_board();
+    }
 }
