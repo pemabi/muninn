@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "../src/bitboard.hpp"
+#include "../src/common.hpp"
 
 TEST_CASE("Bitboard overloaded operators")  {
     Bitboard bb = Bitboard(UINT64_C(0x04223FF888402038), UINT64_C(0x0000000000007010));
@@ -18,4 +19,19 @@ TEST_CASE("Bitboard overloaded operators")  {
         auto result3 = checkerboard & verticals;
         REQUIRE( result3 == expected3 );
     }
+}
+
+
+TEST_CASE("Magics")   {
+    for (int i = 0; i < 50; ++i)  {
+      //generate random blocker configs
+
+
+      //find the moves on the fly
+
+      // calculate moves with magics
+
+      // compare
+    }
+
 }

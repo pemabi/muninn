@@ -97,4 +97,9 @@ public:
     u64 random_u64_sparse() {
         return mt() & mt() & mt();
     }
+
+    int random_int(int min, int max) {
+        std::uniform_int_distribution<int> dist(min, max);
+        return dist(mt);
+    }
 };

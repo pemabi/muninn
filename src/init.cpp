@@ -66,10 +66,9 @@ void init_moves()  {
         for (int i = 0; i < (1 << blocker_bits); ++i) {
             Bitboard occupied = carry_rippler_next(subset, BLOCKER_MASK[sq]);
             MOVE[index_offset + get_hash_value(occupied.merge(), MAGIC[sq], SHIFT_BITS[sq])] = find_moves_otf(occupied, sq);
-            index_offset += 1 << (64 - SHIFT_BITS[sq]);
         }
+        index_offset += 1 << (64 - SHIFT_BITS[sq]);
     }
-
 }
 
 void init_table() {

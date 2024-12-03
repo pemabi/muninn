@@ -192,8 +192,8 @@ const Bitboard Rank8Mask = Bitboard(0, UINT64_C(0x1ff) << (9 * 0));
 const Bitboard Rank9Mask = Bitboard(0, UINT64_C(0x1ff) << (9 * 1));
 
 extern const u64 MAGIC[SquareNum];
-extern  Bitboard BLOCKER_MASK[SquareNum];
-extern  Bitboard MOVE[512000];
+extern Bitboard BLOCKER_MASK[SquareNum];
+extern Bitboard MOVE[512000];
 extern int INDEX_OFFSET[SquareNum]; // In my first implementation, I used a 2D table where the first dimension was square number. I am adopting Apery's 1D approach, where an offset is added to the hashed index by square.
 
 inline Bitboard file_mask(const File f) { return FileMask[f]; }
