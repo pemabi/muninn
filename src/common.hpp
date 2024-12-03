@@ -74,3 +74,27 @@ inline int count_ones(u64 x)
     x = x + (x >> 32);
     return (static_cast<int>(x)) & 0x0000007f;
 }
+
+// popcount alogrithm to parallelise counting 1s
+inline int count1s(u64 x)
+{
+    x = x - ((x >> 1) & UINT64_C(0x5555555555555555));
+    x = (x & UINT64_C(0x3333333333333333)) + ((x >> 2) & UINT64_C(0x3333333333333333));
+    x = (x + (x >> 4)) & UINT64_C(0x0f0f0f0f0f0f0f0f);
+    x = x + (x >> 8);
+    x = x + (x >> 16);
+    x = x + (x >> 32);
+    return (static_cast<int>(x)) & 0x0000007f;
+}
+
+class RandomGenerator {
+private:
+    std::mt19937_64 mt;
+
+public:
+    RandomGenerator() : mt(std::random_device{}()) {}
+
+    u64 random_u64_sparse() {
+        return mt() & mt() & mt();
+    }
+};

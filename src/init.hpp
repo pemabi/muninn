@@ -4,9 +4,8 @@
 #include "common.hpp"
 #include "bitboard.hpp"
 
-void initTable();
-Bitboard build_blocker_mask(Square sq);
+void init_table();
 
-#if defined FIND_MAGIC
-u64 findMagic(const Square square);
-#endif
+u64 find_magic(const Square square);
+Bitboard build_blocker_mask(const Square sq);
+Bitboard carry_rippler_next(Bitboard& subset, Bitboard& mask);

@@ -89,6 +89,7 @@ public:
     Bitboard operator << (const int i) const { return Bitboard(*this) <<= i; }
     Bitboard operator >> (const int i) const { return Bitboard(*this) >>= i; }
     bool operator == (const Bitboard& bb) const { return (this->p(0) == bb.p(0)) && (this->p(1) == bb.p(1)); }
+    bool operator != (const Bitboard& bb) const { return !(*this == bb); }
     Bitboard and_equal_not(const Bitboard& bb) { return (*this) &= ~bb; } // dont think I need to this as I am not running SSE2/SSE4 optimisations yet. Might as well future proof
     Bitboard not_this_and(const Bitboard& bb) { return ~(*this) & bb; } // ditto for this
 
@@ -163,6 +164,12 @@ inline Bitboard all_one_bb() { return Bitboard(UINT64_C(0x7FFFFFFFFFFFFFFF), UIN
 inline Bitboard all_zero_bb() { return Bitboard(0, 0); }
 inline Bitboard start_pos() { return Bitboard(UINT64_C(0x04223FF888402038), UINT64_C(0x0000000000007010)); }
 
+extern const int BLOCKER_BITS[SquareNum];
+extern const int SHIFT_BITS[SquareNum];
+
+extern const Bitboard FileMask[FileNum];
+extern const Bitboard RankMask[RankNum];
+
 const Bitboard File1Mask = Bitboard(UINT64_C(0x40201008040201) << 0, UINT64_C(0x201) << 0);
 const Bitboard File2Mask = Bitboard(UINT64_C(0x40201008040201) << 1, UINT64_C(0x201) << 1);
 const Bitboard File3Mask = Bitboard(UINT64_C(0x40201008040201) << 2, UINT64_C(0x201) << 2);
@@ -184,8 +191,10 @@ const Bitboard Rank7Mask = Bitboard(UINT64_C(0x1ff) << (9 * 6), 0);
 const Bitboard Rank8Mask = Bitboard(0, UINT64_C(0x1ff) << (9 * 0));
 const Bitboard Rank9Mask = Bitboard(0, UINT64_C(0x1ff) << (9 * 1));
 
-extern const Bitboard FileMask[FileNum];
-extern const Bitboard RankMask[RankNum];
+extern const u64 MAGIC[SquareNum];
+extern  Bitboard BLOCKER_MASK[SquareNum];
+extern  Bitboard MOVE[512000];
+extern int INDEX_OFFSET[SquareNum]; // In my first implementation, I used a 2D table where the first dimension was square number. I am adopting Apery's 1D approach, where an offset is added to the hashed index by square.
 
 inline Bitboard file_mask(const File f) { return FileMask[f]; }
 
@@ -225,4 +234,14 @@ template <Rank R> inline Bitboard rank_mask() {
 inline Bitboard square_rank_mask(const Square sq) {
     const Rank r = sq_to_rank(sq);
     return rank_mask(r);
+}
+
+// Custom hash function for magic representation
+inline u64 get_hash_value(const u64 blocker_key, const u64 magic, const int shiftBits) {
+    return (blocker_key * magic) >> shiftBits;
+}
+
+inline Bitboard get_moves_unmasked(const Square sq, const Bitboard& occupied) {
+    const u64 blocker_key = (occupied & BLOCKER_MASK[sq]).merge();
+    return MOVE[INDEX_OFFSET[sq] + get_hash_value(blocker_key, MAGIC[sq], SHIFT_BITS[sq])];
 }
