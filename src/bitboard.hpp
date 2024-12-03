@@ -164,8 +164,22 @@ inline Bitboard all_one_bb() { return Bitboard(UINT64_C(0x7FFFFFFFFFFFFFFF), UIN
 inline Bitboard all_zero_bb() { return Bitboard(0, 0); }
 inline Bitboard start_pos() { return Bitboard(UINT64_C(0x04223FF888402038), UINT64_C(0x0000000000007010)); }
 
-extern const int BLOCKER_BITS[SquareNum];
-extern const int SHIFT_BITS[SquareNum];
+// Moves
+extern const int BLOCKER_BITS[SquareNum]; // represents possible number of blockers for each square
+extern const int BLOCKER_SHIFT_BITS[SquareNum]; // represents right shift that we apply during hashing.
+extern const u64 MAGIC[SquareNum];
+extern Bitboard BLOCKER_MASK[SquareNum];
+extern Bitboard MOVE[512000]; // table size is 2 ** (64 - SHIFT_BITS)
+extern int INDEX_OFFSET[SquareNum]; // In my first implementation, I used a 2D table where the first dimension was square number. I am adopting Apery's 1D approach, where an offset is added to the hashed index by square.
+
+// Attacks
+extern const int ATTACKER_BITS[SquareNum];
+extern const int ATTACKER_SHIFT_BITS[SquareNum];
+extern const u64 ATTACK_MAGIC[SquareNum];
+extern Bitboard ATTACKER_MASK[SquareNum];
+extern Bitboard ATTACK[784];  // hashing approach seems a little overkill for such a small number of potential attacking patterns. I might experiment with other approaches later.
+extern int ATTACK_INDEX_OFFSET[SquareNum];
+
 
 extern const Bitboard FileMask[FileNum];
 extern const Bitboard RankMask[RankNum];
@@ -190,11 +204,6 @@ const Bitboard Rank6Mask = Bitboard(UINT64_C(0x1ff) << (9 * 5), 0);
 const Bitboard Rank7Mask = Bitboard(UINT64_C(0x1ff) << (9 * 6), 0);
 const Bitboard Rank8Mask = Bitboard(0, UINT64_C(0x1ff) << (9 * 0));
 const Bitboard Rank9Mask = Bitboard(0, UINT64_C(0x1ff) << (9 * 1));
-
-extern const u64 MAGIC[SquareNum];
-extern Bitboard BLOCKER_MASK[SquareNum];
-extern Bitboard MOVE[512000];
-extern int INDEX_OFFSET[SquareNum]; // In my first implementation, I used a 2D table where the first dimension was square number. I am adopting Apery's 1D approach, where an offset is added to the hashed index by square.
 
 inline Bitboard file_mask(const File f) { return FileMask[f]; }
 
@@ -243,5 +252,5 @@ inline u64 get_hash_value(const u64 blocker_key, const u64 magic, const int shif
 
 inline Bitboard get_moves_unmasked(const Square sq, const Bitboard& occupied) {
     const u64 blocker_key = (occupied & BLOCKER_MASK[sq]).merge();
-    return MOVE[INDEX_OFFSET[sq] + get_hash_value(blocker_key, MAGIC[sq], SHIFT_BITS[sq])];
+    return MOVE[INDEX_OFFSET[sq] + get_hash_value(blocker_key, MAGIC[sq], BLOCKER_SHIFT_BITS[sq])];
 }

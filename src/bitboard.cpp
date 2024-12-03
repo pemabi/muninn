@@ -185,7 +185,7 @@ const int BLOCKER_BITS[SquareNum] = {
 };
 
 // represents bits we shift when calculating move index. Generally follows pattern 64 - BLOCKER_BITS[sq]
-const int SHIFT_BITS[SquareNum] = {
+const int BLOCKER_SHIFT_BITS[SquareNum] = {
     50, 51, 51, 51, 51, 51, 51, 51, 50,
     51, 52, 52, 52, 52, 52, 52, 52, 50, // [17]: 51 -> 50 : Followed Apery's lead here for hard to find (impossible?) magics
     51, 52, 52, 52, 52, 52, 52, 52, 51,
@@ -195,6 +195,32 @@ const int SHIFT_BITS[SquareNum] = {
     51, 52, 52, 52, 52, 52, 52, 52, 51,
     51, 52, 52, 52, 52, 52, 52, 52, 51,
     50, 51, 51, 51, 51, 51, 51, 51, 50
+};
+
+// represents number of potential allied pieces coordinating to create an attack at each square.
+const int ATTACKER_BITS[SquareNum] = {
+    2, 2, 3, 3, 3, 3, 3, 2, 2,
+    2, 2, 3, 3, 3, 3, 3, 2, 2,
+    3, 3, 4, 4, 4, 4, 4, 3, 3,
+    3, 3, 4, 4, 4, 4, 4, 3, 3,
+    3, 3, 4, 4, 4, 4, 4, 3, 3,
+    3, 3, 4, 4, 4, 4, 4, 3, 3,
+    3, 3, 4, 4, 4, 4, 4, 3, 3,
+    2, 2, 3, 3, 3, 3, 3, 2, 2,
+    2, 2, 3, 3, 3, 3, 3, 2, 2
+};
+
+// represents bits we shift when calculating index. Could replace this with 64 - ATTACKER_BITS[sq], but want to keep consistency with moves
+const int ATTACKER_SHIFT_BITS[SquareNum] = {
+    62, 62, 61, 61, 61, 61, 61, 62, 62,
+    62, 62, 61, 61, 61, 61, 61, 62, 62,
+    61, 61, 60, 60, 60, 60, 60, 61, 61,
+    61, 61, 60, 60, 60, 60, 60, 61, 61,
+    61, 61, 60, 60, 60, 60, 60, 61, 61,
+    61, 61, 60, 60, 60, 60, 60, 61, 61,
+    61, 61, 60, 60, 60, 60, 60, 61, 61,
+    62, 62, 61, 61, 61, 61, 61, 62, 62,
+    62, 62, 61, 61, 61, 61, 61, 62, 62
 };
 
 const Bitboard FileMask[FileNum] = {
@@ -208,3 +234,7 @@ const Bitboard RankMask[RankNum] = {
 Bitboard BLOCKER_MASK[SquareNum];
 Bitboard MOVE[512000];
 int INDEX_OFFSET[SquareNum];
+
+Bitboard ATTACKER_MASK[SquareNum];
+Bitboard ATTACK[784];
+int ATTACK_INDEX_OFFSET[SquareNum];

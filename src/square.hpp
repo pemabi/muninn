@@ -98,6 +98,12 @@ inline bool is_same_file(const Square sq1, const Square sq2)  {
     return sq_to_file(sq1) == sq_to_file(sq2);
 }
 
+// ORDER MATTERS (FROM, TO) - true if target square is valid, and on either rank or file
+inline bool is_valid_target(const Square from, const Square to) {
+    assert(is_in_square(from));
+    return is_in_square(to) && (is_same_file(from, to) || is_same_rank(from, to));
+}
+
 enum SquareDelta {
     DeltaNothing = 0,
     DeltaN = -1, DeltaE = -9, DeltaS = 1, DeltaW = 9,
