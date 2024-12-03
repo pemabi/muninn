@@ -251,6 +251,11 @@ inline u64 get_hash_value(const u64 blocker_key, const u64 magic, const int shif
 }
 
 inline Bitboard get_moves_unmasked(const Square sq, const Bitboard& occupied) {
-    const u64 blocker_key = (occupied & BLOCKER_MASK[sq]).merge();
-    return MOVE[INDEX_OFFSET[sq] + get_hash_value(blocker_key, MAGIC[sq], BLOCKER_SHIFT_BITS[sq])];
+    const u64 key = (occupied & BLOCKER_MASK[sq]).merge();
+    return MOVE[INDEX_OFFSET[sq] + get_hash_value(key, MAGIC[sq], BLOCKER_SHIFT_BITS[sq])];
+}
+
+inline Bitboard get_attacked_squares(const Square sq, const Bitboard& allies) {
+    const u64 key = (allies & ATTACKER_MASK[sq]).merge();
+    return ATTACK[ATTACK_INDEX_OFFSET[sq] + get_hash_value(key, ATTACK_MAGIC[sq], ATTACKER_SHIFT_BITS[sq])];
 }
