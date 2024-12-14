@@ -315,6 +315,8 @@ const Bitboard RankMask[RankNum] = {
     Rank1Mask, Rank2Mask, Rank3Mask, Rank4Mask, Rank5Mask, Rank6Mask, Rank7Mask, Rank8Mask, Rank9Mask
 };
 
+const Bitboard EDGE_MASK = Rank1Mask | Rank9Mask | File1Mask | File9Mask;
+
 Bitboard BLOCKER_MASK[SquareNum];
 Bitboard MOVE[512000];
 int INDEX_OFFSET[SquareNum];

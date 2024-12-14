@@ -8,7 +8,7 @@ enum PieceType {
 };
 
 enum Piece {
-    Empty, Attacker, Defender, King
+    Empty, Attacker, Defender, K
 };
 
 inline Side pieceToSide(const Piece p)  {
