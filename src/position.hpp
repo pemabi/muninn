@@ -23,7 +23,7 @@ public:
 
   // because I have so few options - I could do these all explicitly
   Bitboard bbOf(const PieceType pt) const { return byTypeBB_[pt]; }   // why the underscore after
-  Bitboard bbOf(const Side s) const { return bySideBB_[c]; }
+  Bitboard bbOf(const Side s) const { return bySideBB_[s]; }
   Bitboard bbOf(const PieceType pt, const Side s) const { return bbOf(pt) & bbOf(s); }
 
   Bitboard occupiedBB() const { return bbOf(Occupied); }
@@ -33,7 +33,18 @@ public:
   // could add in something for captured pieces here... tracking etc for gui
 
   // bools for board state
-  bool kingEscaped() { const return }
+  bool kingEscaped() const { return (bbOf(King) & EDGE_MASK).is_not_empty(); }
+
+  inline Square kingSquare() const {
+      assert(kingSquare_[c] == bbOf(King).bitscan_forward());
+      return kingSquare_[c];
+  }
+
+  Piece movedPiece(const Move m) const;
+
+  
+
+  // how are different boards accessed? It is by index... where are they kept?
 
 
 
