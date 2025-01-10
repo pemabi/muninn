@@ -1,53 +1,49 @@
-#include "bitboard.hpp"
+#pragma once
+
 #include "pieces.hpp"
-#include "sides.hpp"
+#include "common.hpp"
+#include "bitboard.hpp"
 
-#include <cassert>
-#include <deque>
-#include <memory>
+#include <stack>
 
-struct StateInfo {
-    //Key materialKey;
-    int castlingRights;
-    int rule50;
-    int pliesFromNull;
-    Square epSquare;
+class Position;
 
+enum GameResult : int8_t  {   // no draws in the game - maybe add win type for more info?
+    AttackerWin, DefenderWin, GameResultNum
 };
 
-typedef std::unique_ptr<std::deque<StateInfo>> StateListPtr;
+struct StateInfo {
+    int plies_from_null;
 
-class Position {
+    //Key board_key;
+
+    StateInfo* previous;
+
+    //ChangedLists cl;
+
+    //Key key() const { return board_key; }
+};
+
+// smart pointer to manage a double ended queue of state info
+using StateListPtr = std::unique_ptr<std::deque<StateInfo>>;
+
+/*
+Should add in some kind of compressing technique here (Huffman is obvious, custom ANS?) for ML export. Position, eval, etc.
+Consider however the tensor stack - last few positions will be stored. should these all be encoded together? Should i not bother with encoding?
+ */
+
+class Move;
+struct Thread;
+struct Searcher;    // Think I might start with implementing a naive agent
+
+class Position  {
 public:
-  Position() {}
+    static void init();
 
-  // because I have so few options - I could do these all explicitly
-  Bitboard bbOf(const PieceType pt) const { return byTypeBB_[pt]; }   // why the underscore after
-  Bitboard bbOf(const Side s) const { return bySideBB_[s]; }
-  Bitboard bbOf(const PieceType pt, const Side s) const { return bbOf(pt) & bbOf(s); }
+    // representation of inital position
+    //static const CodedPos
 
-  Bitboard occupiedBB() const { return bbOf(Occupied); }
-  Bitboard emptyBB() const { return occupiedBB() ^ all_one_bb(); }
-
-  Piece piece(const Square sq) const { return piece_[sq]; }
-  // could add in something for captured pieces here... tracking etc for gui
-
-  // bools for board state
-  bool kingEscaped() const { return (bbOf(King) & EDGE_MASK).is_not_empty(); }
-
-  inline Square kingSquare() const {
-      assert(kingSquare_[c] == bbOf(King).bitscan_forward());
-      return kingSquare_[c];
-  }
-
-  Piece movedPiece(const Move m) const;
-
-  
-
-  // how are different boards accessed? It is by index... where are they kept?
-
-
-
+    Position() = default;
 
 
 };
