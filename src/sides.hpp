@@ -3,7 +3,7 @@
 #include "overloadEnumOperators.hpp"
 
 enum Side {
-    Attack,
-    Defense
+    Defenders,
+    Attackers
 };
 OVERLOAD_ENUM_OPERATORS(Side);

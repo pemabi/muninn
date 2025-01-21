@@ -103,3 +103,5 @@ public:
         return dist(mt);
     }
 };
+
+const int MAX_MOVES = 256;

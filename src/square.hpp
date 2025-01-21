@@ -22,6 +22,7 @@ enum Square  {
     SQA8, SQB8, SQC8, SQD8, SQE8, SQF8, SQG8, SQH8, SQI8,
     SQA9, SQB9, SQC9, SQD9, SQE9, SQF9, SQG9, SQH9, SQI9,
     SquareNum,  // = 81
+    SQ_NONE = SquareNum,  // to indicate invalid square / unoccupied square that should be skipped in movegen
     CutoffSquareLower = SQI7,   // Last square on lower board (p_[0])
     CutoffSquareUpper = SQA8    // First square on upper board (p_[1])
 };

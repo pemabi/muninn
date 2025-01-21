@@ -6,7 +6,7 @@
 
 // xxxxxxxx x1111111 From square = bits 0-6
 // xx111111 1xxxxxxx To square = bits 7-14
-// 11xxxxxx xxxxxxxx Piece = bits 15-16 - functionally means that 1xxxxxxx xxxxxxxx operates as Turn flag.
+// 11xxxxxx xxxxxxxx PieceType = bits 15-16 - functionally means that 1xxxxxxx xxxxxxxx operates as Turn flag.
 
 class Move {
 public:
@@ -19,7 +19,7 @@ public:
 
     Square from() const { return static_cast<Square>((value() >> 0) & 0x7f); }
     Square to() const { return static_cast<Square>((value() >> 7) & 0x7f); }
-    Piece movedPiece() const { return static_cast<Piece>((value() >> 14)); }
+    PieceType movedPiece() const { return static_cast<PieceType>((value() >> 14)); }
     Side movedSide() const { return static_cast<Side>((value() >> 15)); }
 
     explicit operator bool() const { return value() != MoveNone; }
@@ -38,10 +38,25 @@ inline Move moveNone() { return static_cast<Move>(Move::MoveNone); }
 
 inline Move fromSqToMove(const Square from) {return static_cast<Move>(from << 0); }
 inline Move toSqToMove(const Square to) {return static_cast<Move>(to << 7); }
-inline Move pieceTypeToMove(const PieceType pt) {return static_cast<Move>(pt << 15); }
+inline Move pieceTypeToMove(const PieceType pt) {return static_cast<Move>(pt << 14); }
 
-inline Move buildMove(const PieceType pt, const Square from, const Square to) {
+inline Move encodeMove(const PieceType pt, const Square from, const Square to) {
     return fromSqToMove(from) | toSqToMove(to) | pieceTypeToMove(pt);
 }
 
 // todo: add struct that bundles move with other data (move score, captured pieces?)
+
+// returns pointer to the end of the move list
+Move* generate(const Position& pos, Move* moveList);
+
+struct MoveList {
+    explicit MoveList(const Position& pos) : last(generate(pos, moveList)) {}
+
+    const Move* begin() const { return moveList; }
+    const Move* end() const { return last; }
+
+    size_t size() const { return last - moveList; }
+
+private:
+    Move moveList[MAX_MOVES], *last;
+};

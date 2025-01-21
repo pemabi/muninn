@@ -4,14 +4,10 @@
 #include <cassert>
 
 enum PieceType {
-    Occupied, Pawn, King, PieceTypeNum
+    Defender, King, Attacker, PieceNum
 };
 
-enum Piece {
-    Empty, Attacker, Defender, K
-};
-
-inline Side pieceToSide(const Piece p)  {
-    assert(p != Empty);
-    return static_cast<Side>(p >> 1);  // 0 if Attacker, 1 if Defender/King - returning side of piece
+inline Side pieceToSide(const PieceType p)  {
+    assert(p < PieceNum);
+    return static_cast<Side>(p >> 1);  // 0 if Defender/King, 1 if Attacker - returning side of piece
 }

@@ -1,6 +1,8 @@
 #include "init.hpp"
 #include "magics.hpp"
 
+#include "position.hpp"
+
 int main() {
 #ifdef FIND_MOVE_MAGICS
     find_all_move_magics();
@@ -15,14 +17,18 @@ int main() {
 #endif
 
 #ifdef TEST_MODE
+    std::cout<<"hello, world"<<"\n";
+
     RandomGenerator rng;
 
     init_table();
 
-    Bitboard bb = all_zero_bb() | EDGE_MASK;
+    Bitboard bb = all_zero_bb();
     bb.print_board();
 
-#endif
+    Position pos;
+    print_position(pos);
 
+#endif
     return 0;
 }
