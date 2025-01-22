@@ -16,21 +16,24 @@ Move* generate(const Position& pos, Move* moveList) {
 
 }
 
+// NEED TO FIX BLOCKERS?
+// Make some tests for cross referencing moves vs manual checking
 static Move* generate_attacker_moves(const Position& pos, Move* moveList) {
     Bitboard attacker_pieces = pos.attackers();
     Bitboard occupied = pos.occupied();
     Bitboard occupied_edges = occupied & EDGE_MASK;
 
     while (attacker_pieces) {
-        Square from = attacker_pieces.bitscan_pop_forward(); // does it matter that I am popping the origin square? will this mess with the magics?
+        Square from = attacker_pieces.bitscan_forward();
 
         Bitboard moves = get_moves_unmasked(from, occupied);
-        moves &= ~occupied_edges;  // getting rid of edge blockers
+        moves &= ~occupied;  // getting rid of edge blockers
 
         while (moves) {
-            Square to = moves.bitscan_pop_forward();  // built in to pop the bit while getting the index
-            *moveList++ = encodeMove(Attacker, from, to); // Need to fix piece, piecetypes.
+            Square to = moves.bitscan_pop_forward();
+            *moveList++ = encodeMove(Attacker, from, to);
         }
+        attacker_pieces.clear_bit(from);
     }
     return moveList;
 }

@@ -127,7 +127,7 @@ public:
             this->p_[0] &= this->p(0) - 1;
             return sq;
         }
-        const  Square sq = static_cast<Square>(lsb(this->p(1)));
+        const  Square sq = static_cast<Square>(lsb(this->p(1)) + 63);
         this->p_[1] &= this->p(1) - 1;
         return sq;
     }
