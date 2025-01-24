@@ -6,6 +6,8 @@
 #include "sides.hpp"
 
 #include <stack>
+#include <string>
+#include <cassert>
 
 class Position;
 
@@ -40,7 +42,9 @@ struct Searcher;    // Think I might start with implementing a naive agent
 class Position  {
 public:
     // representation of inital position
-    //static const CodedPos
+    // static const CodedPos
+
+    static const char* StartFEN;
 
     Position() = default;
 
@@ -48,6 +52,8 @@ public:
         : attackersBB(att), defendersBB(def), kingBB(k), kingIndex(kingIdx), gamePly(ply), sideToMove(side) { }
 
     // some logic to set position from coded pos
+    Position& set(const std::string& fenStr);
+    const std::string fen() const;
 
     Bitboard attackers() const;
     Bitboard defenders() const;
@@ -60,18 +66,21 @@ public:
     int game_ply() const;
     // maybe add some repetition counters etc here
 
+    void clear(); // reset position to all zeros. I do this all manually. Could trial a lower level approach with memset later.
+
 private:
     // move piece, remove piece, etc
+    void put_piece(PieceType pt, Square sq);
 
     // Data members
-    Bitboard attackersBB = Bitboard(UINT64_C(0x0020383808002038), UINT64_C(0x0000000000007010));
-    Bitboard defendersBB = Bitboard(UINT64_C(0x040206C080400000), UINT64_C(0x0000000000000000));
-    Bitboard kingBB = Bitboard(UINT64_C(0x0000010000000000), UINT64_C(0x0000000000000000));
+    Bitboard attackersBB;
+    Bitboard defendersBB;
+    Bitboard kingBB;
     //Square attackerIndexList[16];
     //Square defenderIndexList[8];
-    Square kingIndex = SQE5;
-    int gamePly = 0;
-    Side sideToMove = Attackers;
+    Square kingIndex;
+    int gamePly;
+    Side sideToMove;
     //StateInfo* st;
 };
 
@@ -101,6 +110,22 @@ inline Square Position::king_index() const {
 
 inline int Position::game_ply() const {
     return gamePly;
+}
+
+inline void Position::put_piece(PieceType pt, Square sq) {
+
+    assert(pt == Attacker || pt == Defender || pt == King);
+
+    if (pt == Attacker) {
+        attackersBB.set_bit(sq);
+    }
+    else if (pt == Defender) {
+        defendersBB.set_bit(sq);
+    }
+    else if (pt == King) {
+        kingBB.set_bit(sq);
+        kingIndex = sq;
+    }
 }
 
 

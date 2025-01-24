@@ -107,7 +107,7 @@ inline bool is_valid_target(const Square from, const Square to) {
 
 enum SquareDelta {
     DeltaNothing = 0,
-    DeltaN = -1, DeltaE = -9, DeltaS = 1, DeltaW = 9,
+    DeltaN = 9, DeltaE = 1, DeltaS = -DeltaN, DeltaW = -DeltaE,
 };
 OVERLOAD_ENUM_OPERATORS(SquareDelta);
 

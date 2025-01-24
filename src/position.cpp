@@ -1,5 +1,82 @@
 #include "position.hpp"
 
+#include <sstream>
+
+const char* Position::StartFEN = "3AAA3/4A4/4D4/A3D3A/AADDKDDAA/A3D3A/4D4/4A4/3AAA3 a 1";
+
+Position& Position::set(const std::string& fenStr) {
+  /*
+
+      Sets Position object based on modified FEN.
+
+      FEN anatomy:
+      1) Split into ranks divided by '/' character
+      2) A represents attackers, D represents defenders, K represents king.
+      3) use run-length for empties where number of sequential empties in a row are represented numerically.
+      4) blankspace, then a or d represents Attacker or Defender turn.
+
+      Starting FEN: '3AAA3/4A4/A2D2A/AADDKDDA/A2D2A/4A4/3AAA3 a'
+
+  */
+  unsigned char token;
+  Square sq = SQA9;
+  std::istringstream ss(fenStr);
+
+  ss >> std::noskipws;
+
+  clear();
+
+  while ((ss >> token) && !isspace(token)) {
+      if (isdigit(token)) {  // empties
+          sq += (token - '0') * DeltaE;
+      }
+
+      else if (token == '/') {  // new rank
+          sq += 2 * DeltaS; // typewriter reset to beginning of rank below
+      }
+
+      else if (token == 'A') {
+          put_piece(Attacker, sq);
+          ++sq;
+      }
+
+      else if (token == 'D') {
+          put_piece(Defender, sq);
+          ++sq;
+      }
+
+      else if (token == 'K') {
+          put_piece(King, sq);  // put_piece will take care of updating kingIndex
+          ++sq;
+      }
+
+      else {
+          throw std::invalid_argument("Invalid character in FEN string " + fenStr + ": " + std::string(1, token));
+      }
+  }
+
+  ss >> token;
+  sideToMove = (token == 'a' ? Attackers : Defenders);
+  ss >> std::skipws;
+  int ply;
+  ss >> ply;
+  gamePly = ply;
+
+  return *this;
+}
+
+void Position::clear() {
+    attackersBB = all_zero_bb();
+    defendersBB = all_zero_bb();
+    kingBB = all_zero_bb();
+
+    kingIndex = SQ_NONE;
+    gamePly = 0;
+    sideToMove = Attackers;
+
+
+}
+
 void print_position(const Position& pos) {
     // Unicode pieces
     const std::string DEFENDER = "♟";

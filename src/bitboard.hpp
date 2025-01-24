@@ -245,6 +245,8 @@ inline Bitboard square_rank_mask(const Square sq) {
 }
 
 extern const Bitboard EDGE_MASK;
+extern const Bitboard THRONE_MASK;
+extern const Bitboard THRONE_OUT_MASK;
 
 // Custom hash function for magic representation
 inline u64 get_hash_value(const u64 blocker_key, const u64 magic, const int shiftBits) {

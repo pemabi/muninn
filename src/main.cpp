@@ -18,29 +18,16 @@ int main() {
 #endif
 
 #ifdef TEST_MODE
-    std::cout<<"hello, world"<<"\n";
 
     RandomGenerator rng;
 
     init_table();
 
-    Bitboard bb = all_zero_bb();
-    bb.print_board();
-
     Position pos;
-    print_position(pos);
+    //print_position(pos);
 
-    int counter = 1;
-    MoveList moves(pos);
-    for (const auto& move : moves) {
-        std::cout<<"MOVE "<<counter<<"\n";
-        std::cout<<"RAW MOVE: "<<move.value()<<"\n";
-        std::cout<<"FROM: "<<move.from()<<"\n";
-        std::cout<<"TO: "<<move.to()<<"\n";
-        std::cout<<"-----------\n";
-        counter+=1;
-    }
-    std::cout<<moves.size()<<" Moves\n";
+    pos.set(Position::StartFEN);
+    print_position(pos);
 
 
 #endif

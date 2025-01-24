@@ -316,6 +316,10 @@ const Bitboard RankMask[RankNum] = {
 };
 
 const Bitboard EDGE_MASK = Rank1Mask | Rank9Mask | File1Mask | File9Mask;
+const Bitboard THRONE_MASK = Bitboard(UINT64_C(0x0000010000000000), UINT64_C(0x0000000000000000));
+const Bitboard THRONE_OUT_MASK = Bitboard(UINT64_C(0xFFFFFEFFFFFFFFFF), UINT64_C(0xFFFFFFFFFFFFFFFF));
+// noting some inherent dangers with the "overflow area. In the inverse mask here, for instance, the overflow will be all full. This could play havoc
+// when trying to assert equality, or with masking situations. Possibly should decide on a policy here and ensure adherence throughout.
 
 Bitboard BLOCKER_MASK[SquareNum];
 Bitboard MOVE[512000];

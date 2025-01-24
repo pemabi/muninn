@@ -16,18 +16,16 @@ Move* generate(const Position& pos, Move* moveList) {
 
 }
 
-// NEED TO FIX BLOCKERS?
 // Make some tests for cross referencing moves vs manual checking
 static Move* generate_attacker_moves(const Position& pos, Move* moveList) {
     Bitboard attacker_pieces = pos.attackers();
     Bitboard occupied = pos.occupied();
-    Bitboard occupied_edges = occupied & EDGE_MASK;
 
     while (attacker_pieces) {
         Square from = attacker_pieces.bitscan_forward();
 
         Bitboard moves = get_moves_unmasked(from, occupied);
-        moves &= ~occupied;  // getting rid of edge blockers
+        moves &= (~occupied & THRONE_OUT_MASK);  // getting rid of blockers and throne square
 
         while (moves) {
             Square to = moves.bitscan_pop_forward();
@@ -38,21 +36,23 @@ static Move* generate_attacker_moves(const Position& pos, Move* moveList) {
     return moveList;
 }
 
+// keeping separate for clarity, plus might want to have some unique events happen during each movegen later (ie, edge detection for surrounds)
 static Move* generate_defender_moves(const Position& pos, Move* moveList) {
     Bitboard defender_pieces = pos.defenders();
     Bitboard occupied = pos.occupied();
-    Bitboard occupied_edges = occupied & EDGE_MASK;
 
     while (defender_pieces) {
-        Square from = defender_pieces.bitscan_pop_forward();
+        Square from = defender_pieces.bitscan_forward();
 
         Bitboard moves = get_moves_unmasked(from, occupied);
-        moves &= ~occupied_edges;
+        moves &= (~occupied & THRONE_OUT_MASK);
+        moves.print_board();
 
         while (moves) {
             Square to = moves.bitscan_pop_forward();
             *moveList++ = encodeMove(Defender, from, to);
         }
+        defender_pieces.clear_bit(from);
     }
 
     moveList = generate_king_moves(pos, moveList);
@@ -61,10 +61,12 @@ static Move* generate_defender_moves(const Position& pos, Move* moveList) {
 }
 
 static Move* generate_king_moves(const Position& pos, Move* moveList) {
-    Square from = pos.king_index();
+    Square from = pos.king_index();  // based on KING INDEX, not Bitboard. Would cause problems if King is off the board (shouldn't happen)
     Bitboard occupied = pos.occupied();
 
     Bitboard moves = get_moves_unmasked(from, occupied);
+    moves &= ~occupied;
+    moves.print_board();
 
     while (moves) {
         Square to = moves.bitscan_pop_forward();
