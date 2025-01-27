@@ -46,7 +46,6 @@ static Move* generate_defender_moves(const Position& pos, Move* moveList) {
 
         Bitboard moves = get_moves_unmasked(from, occupied);
         moves &= (~occupied & THRONE_OUT_MASK);
-        moves.print_board();
 
         while (moves) {
             Square to = moves.bitscan_pop_forward();
@@ -66,7 +65,6 @@ static Move* generate_king_moves(const Position& pos, Move* moveList) {
 
     Bitboard moves = get_moves_unmasked(from, occupied);
     moves &= ~occupied;
-    moves.print_board();
 
     while (moves) {
         Square to = moves.bitscan_pop_forward();

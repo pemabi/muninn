@@ -12,7 +12,7 @@ class Move {
 public:
     static const u16 MoveNone = 0;
 
-    Move() {}
+    Move() : value_(MoveNone) {}  // default initialises to MoveNone
     explicit Move(const u16 u) : value_(u) {}
     Move& operator = (const Move& m) {value_ = m.value_; return *this; }
     Move(const Move& m) { value_ = m.value_; }

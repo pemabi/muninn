@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "../src/bitboard.hpp"
 #include "../src/common.hpp"

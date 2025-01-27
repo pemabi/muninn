@@ -15,7 +15,7 @@ Position& Position::set(const std::string& fenStr) {
       3) use run-length for empties where number of sequential empties in a row are represented numerically.
       4) blankspace, then a or d represents Attacker or Defender turn.
 
-      Starting FEN: '3AAA3/4A4/A2D2A/AADDKDDA/A2D2A/4A4/3AAA3 a'
+      Starting FEN: "3AAA3/4A4/4D4/A3D3A/AADDKDDAA/A3D3A/4D4/4A4/3AAA3 a 1"
 
   */
   unsigned char token;
@@ -73,14 +73,12 @@ void Position::clear() {
     kingIndex = SQ_NONE;
     gamePly = 0;
     sideToMove = Attackers;
-
-
 }
 
 void print_position(const Position& pos) {
     // Unicode pieces
     const std::string DEFENDER = "♟";
-    const std::string KING = "♔";
+    const std::string KING = "♕";  // dark theme makes the white king annoying. Using the Queen unicode character instead.
     const std::string ATTACKER = "♙";
     const std::string EMPTY = "·";
 
