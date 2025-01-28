@@ -55,8 +55,11 @@ int main() {
 
     for (const auto& move : moves) {
         std::cout << move.movedPiece() << " " << move.from() << " " << move.to() <<'\n';
-    }
 
+        Position moved_pos = pos;
+        moved_pos.do_move(move);
+        print_position(moved_pos);
+    }
 
 #endif
     return 0;

@@ -1,4 +1,5 @@
 #include "position.hpp"
+#include "move.hpp"
 
 #include <sstream>
 
@@ -73,6 +74,30 @@ void Position::clear() {
     kingIndex = SQ_NONE;
     gamePly = 0;
     sideToMove = Attackers;
+}
+
+void Position::do_move(Move move) {
+    assert(is_valid_move(move));
+
+    //update zobrist key
+
+    // handle state transfer
+
+    // changes to Position
+    ++gamePly;
+
+    Side us = sideToMove;
+    Side them = ~us;
+    Square from = move.from();
+    Square to = move.to();
+    PieceType pt = move.movedPiece();
+
+    assert(move.movedSide() == us);
+
+    move_piece(pt, from, to);
+
+    sideToMove = ~sideToMove;
+
 }
 
 void print_position(const Position& pos) {

@@ -53,24 +53,28 @@ public:
 
     // some logic to set position from coded pos
     Position& set(const std::string& fenStr);
-    const std::string fen() const;
+    const std::string fen() const;  // TODO
 
+    // access methods
     Bitboard attackers() const;
     Bitboard defenders() const;
     Bitboard king() const;
-    Bitboard occupied() const;
-
+    Bitboard occupied() const;    // could track and update this as well, at the moment this is computed from union of the 3 pieceBBs
     Square king_index() const;
-
     Side side_to_move() const;
     int game_ply() const;
     // maybe add some repetition counters etc here
+
+    // moves on the position
+    void do_move(Move move);
 
     void clear(); // reset position to all zeros. I do this all manually. Could trial a lower level approach with memset later.
 
 private:
     // move piece, remove piece, etc
     void put_piece(PieceType pt, Square sq);
+    void remove_piece(PieceType pt, Square sq);
+    void move_piece(PieceType pt, Square from, Square to);
 
     // Data members
     Bitboard attackersBB;
@@ -128,7 +132,40 @@ inline void Position::put_piece(PieceType pt, Square sq) {
     }
 }
 
+inline void Position::remove_piece(PieceType pt, Square sq) {  // will be useful for captures
+    assert(pt == Attacker || pt == Defender || pt == King);
+    assert(is_in_square(sq));
 
+    if (pt == Attacker) {
+        attackersBB ^= SquareMaskBB[sq];
+    }
+    else if (pt == Defender) {
+        defendersBB ^= SquareMaskBB[sq];
+    }
+    else {
+        kingBB ^= SquareMaskBB[sq];
+        // could zero out King index here, or set it to Null SQ value? probably makes this more robust, but unnecessary / overkill imo
+    }
+}
+
+// responsible for updating the piece Bitboard, and king index if applicable
+inline void Position::move_piece(PieceType pt, Square from, Square to) {
+    assert(pt == Attacker || pt == Defender || pt == King);
+    assert(is_in_square(from) && is_in_square(to));
+
+    Bitboard moveBB = SquareMaskBB[from] ^ SquareMaskBB[to];
+
+    if (pt == Attacker) {
+        attackersBB ^= moveBB;
+    }
+    else if (pt == Defender) {
+        defendersBB ^= moveBB;
+    }
+    else {
+        kingBB ^= moveBB;
+        kingIndex = to;
+    }
+}
 
 // Printing the position un unicode. Used for debugging and demonstrating only.
 // Judge whether it is worth storing a mailbox representation in position,which would make this easier / faster

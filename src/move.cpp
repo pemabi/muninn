@@ -72,3 +72,11 @@ static Move* generate_king_moves(const Position& pos, Move* moveList) {
     }
     return moveList;
 }
+
+bool is_valid_move(Move move) {
+    Square from = move.from();
+    Square to = move.to();
+    return (SQA1 <= from && from < SquareNum) &&
+           (SQA1 <= to && to < SquareNum) &&
+           (from != to);
+}

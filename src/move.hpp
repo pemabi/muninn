@@ -44,6 +44,8 @@ inline Move encodeMove(const PieceType pt, const Square from, const Square to) {
     return fromSqToMove(from) | toSqToMove(to) | pieceTypeToMove(pt);
 }
 
+bool is_valid_move(Move move);
+
 // todo: add struct that bundles move with other data (move score, captured pieces?)
 
 // returns pointer to the end of the move list
