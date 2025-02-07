@@ -318,6 +318,19 @@ const Bitboard RankMask[RankNum] = {
 const Bitboard EDGE_MASK = Rank1Mask | Rank9Mask | File1Mask | File9Mask;
 const Bitboard THRONE_MASK = Bitboard(UINT64_C(0x0000010000000000), UINT64_C(0x0000000000000000));
 const Bitboard THRONE_OUT_MASK = Bitboard(UINT64_C(0xFFFFFEFFFFFFFFFF), UINT64_C(0xFFFFFFFFFFFFFFFF));
+const Bitboard AROUND_THRONE_MASK = Bitboard(UINT64_C(0x0002038080000000), UINT64_C(0x0000000000000000));
+
+// For comparing to attacker masks when assessing King captures on/around throne. Throne itself IS SET when it is empty and used as a supporting piece so that it works with the ally_mask sequence in find_captures
+const Bitboard KING_CAPTURE_MASK_SQ31 = Bitboard(UINT64_C(0x0000010140400000), UINT64_C(0x0000000000000000));  // could change these to UINT64_Cs and only cmpare them to low board values
+const Bitboard KING_CAPTURE_MASK_SQ39 = Bitboard(UINT64_C(0x0001014040000000), UINT64_C(0x0000000000000000));
+const Bitboard KING_CAPTURE_MASK_THRONE = Bitboard(UINT64_C(0x0002028080000000), UINT64_C(0x0000000000000000));
+const Bitboard KING_CAPTURE_MASK_SQ41 = Bitboard(UINT64_C(0x0004050100000000), UINT64_C(0x0000000000000000));
+const Bitboard KING_CAPTURE_MASK_SQ49 = Bitboard(UINT64_C(0x0405010000000000), UINT64_C(0x0000000000000000));
+
+const Bitboard king_attack_pattern[5] = {
+    KING_CAPTURE_MASK_SQ31, KING_CAPTURE_MASK_SQ39, KING_CAPTURE_MASK_THRONE, KING_CAPTURE_MASK_SQ41, KING_CAPTURE_MASK_SQ49
+};
+
 // noting some inherent dangers with the "overflow area. In the inverse mask here, for instance, the overflow will be all full. This could play havoc
 // when trying to assert equality, or with masking situations. Possibly should decide on a policy here and ensure adherence throughout.
 

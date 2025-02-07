@@ -61,7 +61,6 @@ For each otf Move:
     for (std::string fen: fens) {
         pos.set(fen);
         std::cout << "FEN loaded: " << fen << '\n';  // Verify FEN loaded
-        print_position(pos);
 
         MoveList moveList(pos);
 
@@ -78,10 +77,10 @@ For each otf Move:
         }
 
         Move otfMoves[81][16] = {};
-        Bitboard occupied = pos.occupied();
+        Bitboard occupied = pos.occupied_bb();
 
         if (pos.side_to_move() == Attackers) {
-            Bitboard fromBB = pos.attackers();
+            Bitboard fromBB = pos.attacker_bb();
             while (fromBB) {
                 Square from_sq = fromBB.bitscan_pop_forward();
                 Bitboard otfBB = find_moves_otf(occupied, from_sq);
@@ -100,7 +99,7 @@ For each otf Move:
         }
 
         else {
-            Bitboard fromBB = pos.defenders();
+            Bitboard fromBB = pos.defender_bb();
             while (fromBB) {
                 Square from_sq = fromBB.bitscan_pop_forward();
                 Bitboard otfBB = find_moves_otf(occupied, from_sq);
@@ -117,7 +116,7 @@ For each otf Move:
                 }
             }
 
-            fromBB = pos.king();
+            fromBB = pos.king_bb();
             Square from_sq = pos.king_index();
             Bitboard otfBB = find_moves_otf(occupied, from_sq);
             otfBB &= ~occupied;

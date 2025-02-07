@@ -18,8 +18,8 @@ Move* generate(const Position& pos, Move* moveList) {
 
 // Make some tests for cross referencing moves vs manual checking
 static Move* generate_attacker_moves(const Position& pos, Move* moveList) {
-    Bitboard attacker_pieces = pos.attackers();
-    Bitboard occupied = pos.occupied();
+    Bitboard attacker_pieces = pos.attacker_bb();
+    Bitboard occupied = pos.occupied_bb();
 
     while (attacker_pieces) {
         Square from = attacker_pieces.bitscan_forward();
@@ -38,8 +38,8 @@ static Move* generate_attacker_moves(const Position& pos, Move* moveList) {
 
 // keeping separate for clarity, plus might want to have some unique events happen during each movegen later (ie, edge detection for surrounds)
 static Move* generate_defender_moves(const Position& pos, Move* moveList) {
-    Bitboard defender_pieces = pos.defenders();
-    Bitboard occupied = pos.occupied();
+    Bitboard defender_pieces = pos.defender_bb();
+    Bitboard occupied = pos.occupied_bb();
 
     while (defender_pieces) {
         Square from = defender_pieces.bitscan_forward();
@@ -61,7 +61,7 @@ static Move* generate_defender_moves(const Position& pos, Move* moveList) {
 
 static Move* generate_king_moves(const Position& pos, Move* moveList) {
     Square from = pos.king_index();  // based on KING INDEX, not Bitboard. Would cause problems if King is off the board (shouldn't happen)
-    Bitboard occupied = pos.occupied();
+    Bitboard occupied = pos.occupied_bb();
 
     Bitboard moves = get_moves_unmasked(from, occupied);
     moves &= ~occupied;

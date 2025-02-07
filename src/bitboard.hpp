@@ -175,9 +175,10 @@ extern int INDEX_OFFSET[SquareNum]; // In my first implementation, I used a 2D t
 extern const int ATTACKER_BITS[SquareNum];
 extern const int ATTACKER_SHIFT_BITS[SquareNum];
 extern const u64 ATTACK_MAGIC[SquareNum];
-extern Bitboard ATTACKER_MASK[SquareNum];
+extern Bitboard ATTACKER_MASK[SquareNum];  // this is generated at runtime in init
 extern Bitboard ATTACK[784];  // hashing approach seems a little overkill for such a small number of potential attacking patterns. I might experiment with other approaches later.
 extern int ATTACK_INDEX_OFFSET[SquareNum];
+extern const Bitboard king_attack_pattern[5];
 
 
 extern const Bitboard FileMask[FileNum];
@@ -247,13 +248,19 @@ inline Bitboard square_rank_mask(const Square sq) {
 extern const Bitboard EDGE_MASK;
 extern const Bitboard THRONE_MASK;
 extern const Bitboard THRONE_OUT_MASK;
+extern const Bitboard AROUND_THRONE_MASK;
+extern const Bitboard KING_CAPTURE_MASK_SQ31;
+extern const Bitboard KING_CAPTURE_MASK_SQ39;
+extern const Bitboard KING_CAPTURE_MASK_THRONE;
+extern const Bitboard KING_CAPTURE_MASK_SQ41;
+extern const Bitboard KING_CAPTURE_MASK_SQ49;
 
 // Custom hash function for magic representation
 inline u64 get_hash_value(const u64 blocker_key, const u64 magic, const int shiftBits) {
     return (blocker_key * magic) >> shiftBits;
 }
 
-inline Bitboard get_moves_unmasked(const Square sq, const Bitboard& occupied) {
+inline Bitboard get_moves_unmasked(const Square sq, const Bitboard occupied) {
     const u64 key = (occupied & BLOCKER_MASK[sq]).merge();
     return MOVE[INDEX_OFFSET[sq] + get_hash_value(key, MAGIC[sq], BLOCKER_SHIFT_BITS[sq])];
 }

@@ -50,7 +50,6 @@ bool is_valid_move(Move move);
 
 // returns pointer to the end of the move list
 Move* generate(const Position& pos, Move* moveList);
-
 struct MoveList {
     explicit MoveList(const Position& pos) : last(generate(pos, moveList)) {}
 

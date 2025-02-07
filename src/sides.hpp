@@ -4,7 +4,8 @@
 
 enum Side {
     Defenders,
-    Attackers
+    Attackers,
+    sideNum
 };
 OVERLOAD_ENUM_OPERATORS(Side);
 

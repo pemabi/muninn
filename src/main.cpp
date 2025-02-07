@@ -45,21 +45,19 @@ int main() {
     init_table();
 
     Position pos;
-    //print_position(pos);
 
-    pos.set("3AAA3/4A4/1A7/A3KD1A1/A5D1A/A1D4DA/2A1D4/3A5/4AA3 d 1");
-    print_position(pos);
-
-    MoveList moves(pos);
-    std::cout<<moves.size()<<'\n';
-
-    for (const auto& move : moves) {
-        std::cout << move.movedPiece() << " " << move.from() << " " << move.to() <<'\n';
-
-        Position moved_pos = pos;
-        moved_pos.do_move(move);
-        print_position(moved_pos);
-    }
+    Bitboard bb = KING_CAPTURE_MASK_SQ31;
+    bb.print_board();
+    bb = KING_CAPTURE_MASK_SQ39;
+    bb.print_board();
+    bb = KING_CAPTURE_MASK_SQ41;
+    bb.print_board();
+    bb = KING_CAPTURE_MASK_SQ49;
+    bb.print_board();
+    bb = KING_CAPTURE_MASK_THRONE;
+    bb.print_board();
+    bb = AROUND_THRONE_MASK;
+    bb.print_board();
 
 #endif
     return 0;
