@@ -1,11 +1,10 @@
 #include "position.hpp"
-#include "move.hpp"
 
 #include <sstream>
 
 const char* Position::StartFEN = "3AAA3/4A4/4D4/A3D3A/AADDKDDAA/A3D3A/4D4/4A4/3AAA3 d 1";
 
-Position& Position::set(const std::string& fenStr) {
+Position& Position::set(const std::string& fenStr, StateInfo* si) {
   /*
 
       Sets Position object based on modified FEN.
@@ -22,6 +21,10 @@ Position& Position::set(const std::string& fenStr) {
   unsigned char token;
   Square sq = SQA9;
   std::istringstream ss(fenStr);
+
+  std::memset(this, 0, sizeof(Position));
+  std::memset(si, 0, sizeof(StateInfo));
+  state = si;
 
   ss >> std::noskipws;
 
@@ -65,6 +68,7 @@ Position& Position::set(const std::string& fenStr) {
   int ply;
   ss >> ply;
   gamePly = ply;
+  state->pliesFromNull = ply; // think other than zobrist key, this is the only state data that must be set. Rest ok as garbage - won't be reached
 
   return *this;
 }
@@ -93,7 +97,7 @@ int compress_king_index(int idx) {
     }
 }
 
-void Position::make_captures(Square to) {
+Bitboard Position::make_captures(Square to) {
     Bitboard attacked_squares, captures, ally_key;
     if (sideToMove == Defenders) {
         ally_key = allDefendersBB | THRONE_MASK;  // OR with throne mask because empty or full throne can act as an ally for capturing purposes
@@ -132,19 +136,30 @@ void Position::make_captures(Square to) {
         allDefendersBB ^= captures;
         occupiedBB ^= captures;
     }
+    return captures;
     // could modify attack hashing so that I don't need all of the safety checks here - remove attacks where allies are in neighbouring sq
     // should really test this vs just rebuilding the occupied and allDefenders with & operation
 }
 
-void Position::do_move(Move move) {
+void Position::do_move(Move move, StateInfo& newState) {
+    std::cout<<"doing the move in the position\n";
     assert(is_valid_move(move));
 
     //update zobrist key
 
     // handle state transfer
+    // offsetof() means that I'm only copying up to previous. Everything else is computed during do_move for the new StateInfo object
+    // after we switch out state pointer to point to the new state.
+    std::memcpy(&newState, state, offsetof(StateInfo, previous));
+    std::cout<<"memcpy complete\n";
+    newState.previous = state;
+    state = &newState;
+    std::cout<<"current state swap complete\n";
 
-    // changes to Position
+    // increment plies
     ++gamePly;
+    ++state->pliesFromNull;
+    std::cout<<"plies incremented\n";
 
     Side us = sideToMove;
     Side them = ~us;
@@ -155,10 +170,15 @@ void Position::do_move(Move move) {
     assert(move.movedSide() == us);
 
     move_piece(pt, from, to);
+    std::cout<<"piece moved\n";
 
-    make_captures(to);
+    state->capturesBB = make_captures(to); // make captures on position, returning captured pawns (NOT KING) and saving them in StateInfo object
+    std::cout<<"captures made\n";
 
     sideToMove = ~sideToMove;
+
+    state->move = move;
+    std::cout<<"ending move sequence\n";
 }
 
 void print_position_bbs(const Position& pos) {
@@ -212,4 +232,41 @@ void print_position(const Position& pos) {
         std::cout << "overlap in position Bitboards on Square!\n";
         print_position_bbs(pos);
     }
+}
+
+void BoardHistory::set(const std::string& fen) {
+    positions.clear();
+    states.clear();
+
+    positions.emplace_back();
+    std::cout<<"position emplaced, size in now: "<<positions.size()<<"\n";
+    states.emplace_back(new StateInfo);
+    std::cout<<"state emplaced, size is now: "<<states.size()<<"\n";
+    current_pos().set(fen, states.back().get());
+}
+
+BoardHistory BoardHistory::shallow_clone() const {
+    BoardHistory bh;
+    std::cout<<"initiating shallow copy...\n";
+    for (int i = std::max(0, static_cast<int>(positions.size()) - 8); i < static_cast<int>(positions.size()); ++i) {
+        bh.positions.push_back(positions[i]);
+        std::cout<<"shallow copy "<<i<<" complete\n";
+    }
+    std::cout<<"shallow copy complete\n";
+    return bh;
+}
+
+void BoardHistory::do_move(Move m) {
+    states.emplace_back(new StateInfo);
+    std::cout<<"StateInfo pushed back\n";
+    positions.push_back(positions.back());
+    std::cout<<"position pushed back\n";
+    positions.back().do_move(m, *states.back());
+}
+
+bool BoardHistory::undo_move() {
+    if (positions.size() == 1) return false;
+    states.pop_back();
+    positions.pop_back();
+    return true;
 }

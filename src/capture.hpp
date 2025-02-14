@@ -13,5 +13,4 @@ public:
 
 private:
     u8 value_;
-
 };

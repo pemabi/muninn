@@ -1,8 +1,11 @@
+#pragma once
+
 #include "common.hpp"
 #include "square.hpp"
 #include "pieces.hpp"
 #include "sides.hpp"
-#include "position.hpp"
+
+class Position; // forward declaration to avoid circular dependency issues
 
 // xxxxxxxx x1111111 From square = bits 0-6
 // xx111111 1xxxxxxx To square = bits 7-14
@@ -14,7 +17,7 @@ public:
 
     Move() : value_(MoveNone) {}  // default initialises to MoveNone
     explicit Move(const u16 u) : value_(u) {}
-    Move& operator = (const Move& m) {value_ = m.value_; return *this; }
+    Move& operator = (const Move& m) { value_ = m.value_; return *this; }
     Move(const Move& m) { value_ = m.value_; }
 
     Square from() const { return static_cast<Square>((value() >> 0) & 0x7f); }
@@ -24,11 +27,15 @@ public:
 
     explicit operator bool() const { return value() != MoveNone; }
     u16 value() const { return value_; }
-    Move operator |= (const Move rhs) {
+    Move& operator |= (const Move rhs) { // changed this to return reference
         this->value_ |= rhs.value();
         return *this;
     }
     Move operator | (const Move rhs) const { return Move(*this) |= rhs; }
+
+    bool operator == (const Move& m) {return value_ == m.value_; }
+    bool operator != (const Move& m) {return value_ != m.value_; }
+
 
 private:
     u16 value_;
@@ -57,6 +64,8 @@ struct MoveList {
     const Move* end() const { return last; }
 
     size_t size() const { return last - moveList; }
+
+    const Move get_move_by_index(int i);
 
 private:
     Move moveList[MAX_MOVES], *last;

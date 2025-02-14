@@ -4,27 +4,25 @@
 #include "common.hpp"
 #include "bitboard.hpp"
 #include "sides.hpp"
+#include "move.hpp"
 
 #include <stack>
 #include <string>
 #include <cassert>
-
-class Position;
 
 enum GameResult : int8_t  {   // no draws in the game - maybe add win type for more info?
     AttackerWin, DefenderWin, GameResultNum
 };
 
 struct StateInfo {
-    //int plies_from_null;
+    // copied when making a move
+    //Key boardKey;
+    int pliesFromNull;
 
-    //Key board_key;
-
-    //StateInfo* previous;
-
-    //ChangedLists cl;
-
-    //Key key() const { return board_key; }
+    // not copied (recomputed)
+    StateInfo* previous;
+    Bitboard capturesBB; // add this in during the captures logic - don't think this will include King captures?
+    Move move;
 };
 
 // smart pointer to manage a double ended queue of state info
@@ -35,7 +33,6 @@ Should add in some kind of compressing technique here (Huffman is obvious, custo
 Consider however the tensor stack - last few positions will be stored. should these all be encoded together? Should i not bother with encoding?
  */
 
-class Move;
 struct Thread;
 struct Searcher;    // Think I might start with implementing a naive agent
 
@@ -52,7 +49,7 @@ public:
         : attackerBB(att), defenderBB(def), kingBB(k), kingIndex(kingIdx), gamePly(ply), sideToMove(side) { }
 
     // some logic to set position from coded pos
-    Position& set(const std::string& fenStr);
+    Position& set(const std::string& fenStr, StateInfo* state);
     const std::string fen() const;  // TODO
 
     // access methods
@@ -71,7 +68,7 @@ public:
     Bitboard occupied_from_pieces() const;
 
     // moves on the position
-    void do_move(Move move);
+    void do_move(Move move, StateInfo& newState);
 
     void clear(); // reset position to all zeros. I do this all manually. Could trial a lower level approach with memset later.
 
@@ -80,7 +77,7 @@ private:
     void put_piece(PieceType pt, Square sq);
     void remove_piece(PieceType pt, Square sq);
     void move_piece(PieceType pt, Square from, Square to);
-    void make_captures(Square to);
+    Bitboard make_captures(Square to);  // returns captures BB so these can be stored in state
 
     // Data members
     Bitboard attackerBB;
@@ -90,13 +87,12 @@ private:
     Bitboard allDefendersBB;
     Bitboard occupiedBB;
 
-    //Square attackerIndexList[16];
-    //Square defenderIndexList[8];
     Square kingIndex;
     int gamePly;
     Side sideToMove;
     Side win = sideNum;
-    //StateInfo* st;
+
+    StateInfo* state; // TODO: change code so that only references to this member are called state
 };
 
 inline Side Position::side_to_move() const {
@@ -209,3 +205,21 @@ inline void Position::move_piece(PieceType pt, Square from, Square to) {
 // Printing the position un unicode. Used for debugging and demonstrating only.
 // Judge whether it is worth storing a mailbox representation in position,which would make this easier / faster
 void print_position(const Position& pos);
+
+struct BoardHistory {
+    std::vector<Position> positions;
+    std::vector<std::unique_ptr<StateInfo>> states;
+
+    Position& current_pos() {
+        return positions.back();
+    }
+
+    const Position& current_pos() const {
+        return positions.back();
+    }
+
+    void set(const std::string& fen);
+    BoardHistory shallow_clone() const;
+    void do_move(Move m);
+    bool undo_move();
+};

@@ -4,9 +4,7 @@
 
 #include "init.hpp"
 #include "magics.hpp"
-
-#include "position.hpp"
-#include "move.hpp"
+#include "gameWrapper.hpp"
 
 std::vector<std::string> load_test_fens(const std::string& filename) {
     std::vector<std::string> fens;
@@ -43,21 +41,11 @@ int main() {
     RandomGenerator rng;
 
     init_table();
+    std::cout<<"entering loop...\n";
 
-    Position pos;
+    gameWrapper::loop();
 
-    Bitboard bb = KING_CAPTURE_MASK_SQ31;
-    bb.print_board();
-    bb = KING_CAPTURE_MASK_SQ39;
-    bb.print_board();
-    bb = KING_CAPTURE_MASK_SQ41;
-    bb.print_board();
-    bb = KING_CAPTURE_MASK_SQ49;
-    bb.print_board();
-    bb = KING_CAPTURE_MASK_THRONE;
-    bb.print_board();
-    bb = AROUND_THRONE_MASK;
-    bb.print_board();
+
 
 #endif
     return 0;
