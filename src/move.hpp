@@ -65,7 +65,15 @@ struct MoveList {
 
     size_t size() const { return last - moveList; }
 
-    const Move get_move_by_index(int i);
+    const Move get_move_by_index(int i) {
+        if (i < size()) {
+            return moveList[i];
+        }
+        else {
+            std::cout<<"invalid move reached\n";
+            return moveNone();
+        }
+    }
 
 private:
     Move moveList[MAX_MOVES], *last;

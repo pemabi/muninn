@@ -5,17 +5,18 @@
 
 namespace gameWrapper {
 
-using AgentFunction = std::function<Move(BoardHistory)>;
+using AgentFunction = std::function<Move(BoardHistory, RandomGenerator)>;
 
 int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction defenderAgent) {
+    RandomGenerator rng;
     for (int game_ply = 0; game_ply < 300; ++game_ply) {
         print_position(bh.current_pos());
         Move move;
         if (bh.current_pos().side_to_move() == Attackers) {
-            move = attackerAgent(bh.shallow_clone());
+            move = attackerAgent(bh.shallow_clone(), rng);
         }
         else {
-            move = defenderAgent(bh.shallow_clone());
+            move = defenderAgent(bh.shallow_clone(), rng);
         }
         std::cout<<"about to do move\n";
         bh.do_move(move); // need to add something in move / here to guard against no possible move scenarios
@@ -40,10 +41,10 @@ int play_one_game(AgentFunction attackerAgent, AgentFunction defenderAgent) {
 }
 
 // TODO: change this to a class, I think. Add in rng to the class. Can take it out of the main I think
-Move random_agent(BoardHistory bh) {
+Move random_agent(BoardHistory bh, RandomGenerator rng) {
     MoveList moves(bh.current_pos());
     std::cout<<"Moves found...\n";
-    Move move = moves.get_move_by_index();
+    Move move = moves.get_move_by_index(rng.random_int(0, moves.size()-1));
     std::cout<<"Move selected...\n";
     return move;
 }
