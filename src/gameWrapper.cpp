@@ -11,6 +11,7 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
     RandomGenerator rng;
     for (int game_ply = 0; game_ply < 300; ++game_ply) {
         print_position(bh.current_pos());
+        std::cout<<bh.current_pos().winner()<<'\n';
         Move move;
         if (bh.current_pos().side_to_move() == Attackers) {
             move = attackerAgent(bh.shallow_clone(), rng);
@@ -40,7 +41,6 @@ int play_one_game(AgentFunction attackerAgent, AgentFunction defenderAgent) {
 
 }
 
-// TODO: change this to a class, I think. Add in rng to the class. Can take it out of the main I think
 Move random_agent(BoardHistory bh, RandomGenerator rng) {
     MoveList moves(bh.current_pos());
     std::cout<<"Moves found...\n";

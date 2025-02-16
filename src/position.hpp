@@ -90,7 +90,7 @@ private:
     Square kingIndex;
     int gamePly;
     Side sideToMove;
-    Side win = sideNum;
+    Side win;
 
     StateInfo* state; // TODO: change code so that only references to this member are called state
 };
@@ -196,6 +196,7 @@ inline void Position::move_piece(PieceType pt, Square from, Square to) {
         allDefendersBB ^= moveBB;
         kingIndex = to;
         if (moveBB & EDGE_MASK) {
+            std::cout<<"defender move win\n";
             win = Defenders;
         }
     }

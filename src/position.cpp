@@ -61,6 +61,7 @@ Position& Position::set(const std::string& fenStr, StateInfo* si) {
 
   occupiedBB = occupied_from_pieces();
   allDefendersBB = all_defenders_from_pieces();
+  win = sideNum;
 
   ss >> token;
   sideToMove = (token == 'a' ? Attackers : Defenders);
