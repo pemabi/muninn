@@ -27,7 +27,7 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
             return bh.current_pos().winner();
         }
         // check move list, check for surrounds
-        // MoveList moves(bh.current_pos());
+        //MoveList moves(bh.current_pos());
     }
     return sideNum;
 }
