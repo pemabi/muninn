@@ -41,6 +41,7 @@ int main() {
     RandomGenerator rng;
 
     init_table();
+
     std::cout<<"entering loop...\n";
 
     gameWrapper::loop();

@@ -63,6 +63,7 @@ public:
     int game_ply() const;
     Side winner() const;
     // maybe add some repetition counters etc here
+    bool is_surrounded(const Bitboard& allToSquares) const;
 
     Bitboard all_defenders_from_pieces() const;
     Bitboard occupied_from_pieces() const;

@@ -5,11 +5,11 @@
 
 namespace gameWrapper {
 
-using AgentFunction = std::function<Move(BoardHistory, RandomGenerator)>;
+using AgentFunction = std::function<Move(BoardHistory, RandomGenerator&)>;
 
 int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction defenderAgent) {
-    RandomGenerator rng;
-    for (int game_ply = 0; game_ply < 300; ++game_ply) {
+    static RandomGenerator rng; // would have to change this to run games in parallel
+    for (int game_ply = 0; game_ply < 400; ++game_ply) {
         print_position(bh.current_pos());
         std::cout<<bh.current_pos().winner()<<'\n';
         Move move;
@@ -26,8 +26,19 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
             print_position(bh.current_pos());
             return bh.current_pos().winner();
         }
-        // check move list, check for surrounds
-        //MoveList moves(bh.current_pos());
+        // check move list, check for surrounds.
+        // TODO: test all win conditions
+        MoveList moves(bh.current_pos());
+        // if player can't move, opponent wins
+        if (moves.size() == 0) {
+            return ~bh.current_pos().side_to_move();
+        }
+        // check for surrounding wins from Attackers
+        if (bh.current_pos().side_to_move() == Defenders) {
+            if (bh.current_pos().is_surrounded(moves.all_to_squares())) {  // if no overlap between edge squares and all 'to' squares, flood fill
+                return Attackers;
+            }
+        }
     }
     return sideNum;
 }
@@ -41,11 +52,12 @@ int play_one_game(AgentFunction attackerAgent, AgentFunction defenderAgent) {
 
 }
 
-Move random_agent(BoardHistory bh, RandomGenerator rng) {
+Move random_agent(BoardHistory bh, RandomGenerator& rng) {
     MoveList moves(bh.current_pos());
     std::cout<<"Moves found...\n";
-    Move move = moves.get_move_by_index(rng.random_int(0, moves.size()-1));
-    std::cout<<"Move selected...\n";
+    int i = rng.random_int(0, moves.size()-1);
+    Move move = moves.get_move_by_index(i);
+    std::cout<<"Move selected: "<<i<<'\n';
     return move;
 }
 

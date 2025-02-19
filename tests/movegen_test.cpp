@@ -49,7 +49,6 @@ For each otf Move:
 
 7. encode move, assert membership in rearranged MoveList.
 
-*/
     init_table();
 
     std::string filename = "tests/test_fens.txt";
@@ -164,3 +163,5 @@ For each otf Move:
         }
     }
 }
+
+*/

@@ -4,6 +4,7 @@
 #include "square.hpp"
 #include "pieces.hpp"
 #include "sides.hpp"
+#include "bitboard.hpp"
 
 class Position; // forward declaration to avoid circular dependency issues
 
@@ -56,9 +57,10 @@ bool is_valid_move(Move move);
 // todo: add struct that bundles move with other data (move score, captured pieces?)
 
 // returns pointer to the end of the move list
-Move* generate(const Position& pos, Move* moveList);
+Move* generate(const Position& pos, Move* moveList, Bitboard* allToSquares);
+
 struct MoveList {
-    explicit MoveList(const Position& pos) : last(generate(pos, moveList)) {}
+    explicit MoveList(const Position& pos) : last(generate(pos, moveList, &allToSquares)) {}
 
     const Move* begin() const { return moveList; }
     const Move* end() const { return last; }
@@ -75,6 +77,9 @@ struct MoveList {
         }
     }
 
+    Bitboard all_to_squares() const { return allToSquares; }
+
 private:
+    Bitboard allToSquares;  // how I would like to structure this
     Move moveList[MAX_MOVES], *last;
 };

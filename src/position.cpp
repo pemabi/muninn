@@ -1,6 +1,7 @@
 #include "position.hpp"
 
 #include <sstream>
+#include <queue>
 
 const char* Position::StartFEN = "3AAA3/4A4/4D4/A3D3A/AADDKDDAA/A3D3A/4D4/4A4/3AAA3 d 1";
 
@@ -180,6 +181,43 @@ void Position::do_move(Move move, StateInfo& newState) {
 
     state->move = move;
     std::cout<<"ending move sequence\n";
+}
+
+// checks if position is surrounded
+bool Position::is_surrounded(const Bitboard& allToSquares) const {
+    std::queue<Square> queue;
+
+    Bitboard reachable_sqs = allToSquares | all_defenders_bb();
+    Bitboard visited = reachable_sqs;
+
+    // if defender is on / can move to the edge of the board
+    if (reachable_sqs & EDGE_MASK) {
+        return false;
+    }
+
+    while (reachable_sqs) {
+        Square sq = reachable_sqs.bitscan_pop_forward();
+        queue.push(sq);
+        visited.set_bit(sq);
+    }
+
+    while (!queue.empty()) {
+        Square current = queue.front();
+        queue.pop();
+
+        if (SquareMaskBB[current] & EDGE_MASK) return false;
+
+        const Square* neighbour_sqs = get_adjacent_squares(current);
+        for (int i = 0; i < MAX_NEIGHBOURS; i++) {
+            Square next = neighbour_sqs[i];
+            if (next == SQ_NONE) break;
+            if (!visited.is_set(next) && !attackerBB.is_set(next)) {
+                queue.push(next);
+                visited.set_bit(next);
+            }
+        }
+    }
+    return true;
 }
 
 void print_position_bbs(const Position& pos) {

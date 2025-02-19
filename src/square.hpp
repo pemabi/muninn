@@ -115,3 +115,10 @@ inline Square operator + (const Square lhs, const SquareDelta rhs) { return lhs 
 inline void operator += (Square& lhs, const SquareDelta rhs) { lhs = lhs + static_cast<Square>(rhs); }
 inline Square operator - (const Square lhs, const SquareDelta rhs) { return lhs - static_cast<Square>(rhs); }
 inline void operator -= (Square& lhs, const SquareDelta rhs) { lhs = lhs - static_cast<Square>(rhs); }
+
+constexpr int MAX_NEIGHBOURS = 4;
+extern const Square ADJACENT_SQUARES[SquareNum][MAX_NEIGHBOURS];
+
+inline const Square* get_adjacent_squares(Square sq) {
+    return ADJACENT_SQUARES[sq];
+}
