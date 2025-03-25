@@ -34,8 +34,8 @@ public:
     }
     Move operator | (const Move rhs) const { return Move(*this) |= rhs; }
 
-    bool operator == (const Move& m) {return value_ == m.value_; }
-    bool operator != (const Move& m) {return value_ != m.value_; }
+    bool operator == (const Move& m) const {return value_ == m.value_; }
+    bool operator != (const Move& m) const {return value_ != m.value_; }
 
 
 private:

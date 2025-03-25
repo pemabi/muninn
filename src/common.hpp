@@ -25,6 +25,9 @@ using u32 = uint32_t;
 using s64 =  int64_t;
 using u64 = uint64_t;
 
+// Key used for Zobrist
+using ZobristKey = u64;
+
 /*
 Logic for finding least significant bit / most significant bit. Returns index of LSB.
 todo: add logic for different compilers / architectures
@@ -87,12 +90,17 @@ inline int count1s(u64 x)
     return (static_cast<int>(x)) & 0x0000007f;
 }
 
+// TODO: change this to a singleton, maybe
 class RandomGenerator {
 private:
     std::mt19937_64 mt;
 
 public:
     RandomGenerator() : mt(std::random_device{}()) {}
+
+    u64 random_u64() {
+        return mt();
+    }
 
     u64 random_u64_sparse() {
         return mt() & mt() & mt();

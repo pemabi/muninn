@@ -7,7 +7,7 @@
 #include "../src/move.hpp"
 #include "../src/init.hpp"
 
-
+/*
 std::vector<std::string> load_test_fens(const std::string& filename) {
     std::vector<std::string> fens;
     std::ifstream file(filename);

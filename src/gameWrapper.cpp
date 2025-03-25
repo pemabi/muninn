@@ -49,7 +49,6 @@ int play_one_game(AgentFunction attackerAgent, AgentFunction defenderAgent) {
     std::cout<<"Board History set\n";
     int game_result = play_one_game(bh, attackerAgent, defenderAgent);
     return game_result;
-
 }
 
 Move random_agent(BoardHistory bh, RandomGenerator& rng) {

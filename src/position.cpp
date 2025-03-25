@@ -3,7 +3,18 @@
 #include <sstream>
 #include <queue>
 
-const char* Position::StartFEN = "3AAA3/4A4/4D4/A3D3A/AADDKDDAA/A3D3A/4D4/4A4/3AAA3 d 1";
+const char* Position::StartFEN = "3AAA3/4A4/4D4/A3D3A/AADDKDDAA/A3D3A/4D4/4A4/3AAA3 a 1";
+
+namespace Zobrist {
+    ZobristKey psq[PieceNum][SquareNum];
+    ZobristKey repetitions[3];
+    ZobristKey side;
+};
+
+void initZobrist() {
+    RandomGenerator rng;
+    rng.random_u64();
+};
 
 Position& Position::set(const std::string& fenStr, StateInfo* si) {
   /*
@@ -192,31 +203,41 @@ bool Position::is_surrounded(const Bitboard& allToSquares) const {
 
     // if defender is on / can move to the edge of the board
     if (reachable_sqs & EDGE_MASK) {
+        std::cout<<"not surrounded: defender can reach edge\n";
         return false;
     }
 
     while (reachable_sqs) {
         Square sq = reachable_sqs.bitscan_pop_forward();
         queue.push(sq);
-        visited.set_bit(sq);
     }
 
     while (!queue.empty()) {
+        std::cout<<queue.front()<<'\n'; // check queue
         Square current = queue.front();
         queue.pop();
 
-        if (SquareMaskBB[current] & EDGE_MASK) return false;
+        if (SquareMaskBB[current] & EDGE_MASK) {
+            std::cout<<"edge found at square "<<current<<'\n';
+            return false;
+        }
 
         const Square* neighbour_sqs = get_adjacent_squares(current);
         for (int i = 0; i < MAX_NEIGHBOURS; i++) {
             Square next = neighbour_sqs[i];
             if (next == SQ_NONE) break;
+            std::cout<<"neighbour: "<<next<<'\n';
             if (!visited.is_set(next) && !attackerBB.is_set(next)) {
                 queue.push(next);
                 visited.set_bit(next);
+                if (visited & EDGE_MASK) {
+                    std::cout<<"not surrounded: defender can reach edge\n";
+                    return false;
+                }
             }
         }
     }
+    std::cout<<"surrounded"<<'\n';
     return true;
 }
 
