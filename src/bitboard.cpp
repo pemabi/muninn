@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "bitboard.hpp"
 
+const Bitboard EMPTY_BB(0, 0);
 
 // Square masks
 const Bitboard SquareMaskBB[SquareNum] = {

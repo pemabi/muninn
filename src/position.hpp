@@ -16,10 +16,10 @@ enum GameResult : int8_t  {   // no draws in the game - maybe add win type for m
 
 struct StateInfo {
     // copied when making a move
-    //Key boardKey;
     int pliesFromNull;
 
     // not copied (recomputed)
+    ZobristKey key;
     StateInfo* previous;
     Bitboard capturesBB; // add this in during the captures logic - don't think this will include King captures?
     Move move;
@@ -48,8 +48,12 @@ public:
     Position(Bitboard att, Bitboard def, Bitboard k, Square kingIdx, int ply, Side side)
         : attackerBB(att), defenderBB(def), kingBB(k), kingIndex(kingIdx), gamePly(ply), sideToMove(side) { }
 
+    static void initZobrist();  // sets up all the zobrist hash keys
+
     // some logic to set position from coded pos
     Position& set(const std::string& fenStr, StateInfo* state);
+    void set_state(StateInfo* si) const;
+    ZobristKey full_key() const;
     const std::string fen() const;  // TODO
 
     // access methods
@@ -64,6 +68,7 @@ public:
     Side winner() const;
     // maybe add some repetition counters etc here
     bool is_surrounded(const Bitboard& allToSquares) const;
+    int repetitions_count() const;
 
     Bitboard all_defenders_from_pieces() const;
     Bitboard occupied_from_pieces() const;
@@ -80,7 +85,7 @@ private:
     void move_piece(PieceType pt, Square from, Square to);
     Bitboard make_captures(Square to);  // returns captures BB so these can be stored in state
 
-    // Data members
+    // Data members - would putting these together into single data structure help with pre-fetching / contiguous access?
     Bitboard attackerBB;
     Bitboard defenderBB;
     Bitboard kingBB;

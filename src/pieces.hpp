@@ -6,6 +6,7 @@
 enum PieceType {
     Defender, King, Attacker, PieceNum
 };
+OVERLOAD_ENUM_OPERATORS(PieceType);
 
 inline Side pieceToSide(const PieceType p)  {
     assert(p < PieceNum);

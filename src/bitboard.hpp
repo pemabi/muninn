@@ -7,6 +7,7 @@
 
 class Bitboard;
 extern const Bitboard SquareMaskBB[SquareNum];
+extern const Bitboard EMPTY_BB;
 
 //todo add support for SSE2, SSE4, BMI2
 class Bitboard  {

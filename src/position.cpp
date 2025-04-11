@@ -3,7 +3,7 @@
 #include <sstream>
 #include <queue>
 
-const char* Position::StartFEN = "3AAA3/4A4/4D4/A3D3A/AADDKDDAA/A3D3A/4D4/4A4/3AAA3 a 1";
+const char* Position::StartFEN = "3AAA3/4A4/4D4/A3D3A/AADDKDDAA/A3D3A/4D4/4A4/3AAA3 a 0";
 
 namespace Zobrist {
     ZobristKey psq[PieceNum][SquareNum];
@@ -11,9 +11,21 @@ namespace Zobrist {
     ZobristKey side;
 };
 
-void initZobrist() {
+// Generate random 64-bit integers for each piece-square pair, side, repetition counter
+void Position::initZobrist() {
     RandomGenerator rng;
-    rng.random_u64();
+
+    for (PieceType pt = Defender; pt < PieceNum; ++pt) {
+        for (Square sq = SQA1; sq < SquareNum; ++sq) {
+            Zobrist::psq[pt][sq] = rng.random_u64();
+        }
+    }
+
+    Zobrist::side = rng.random_u64();
+
+    for (int i = 0; i < 3; ++i) {
+        Zobrist::repetitions[i] = rng.random_u64();
+    }
 };
 
 Position& Position::set(const std::string& fenStr, StateInfo* si) {
@@ -81,7 +93,10 @@ Position& Position::set(const std::string& fenStr, StateInfo* si) {
   int ply;
   ss >> ply;
   gamePly = ply;
-  state->pliesFromNull = ply; // think other than zobrist key, this is the only state data that must be set. Rest ok as garbage - won't be reached
+  state->pliesFromNull = ply;
+
+  set_state(state);
+  std::cout<<"inital key: "<<state->key<<'\n';
 
   return *this;
 }
@@ -134,16 +149,12 @@ Bitboard Position::make_captures(Square to) {
                 Bitboard attack_pattern = king_attack_pattern[compress_king_index(kingIndex)];
                 if (attack_pattern == (attack_pattern & ally_key)) {
                     captures ^= kingBB;  // add the king capture to captures so it is XORed out of allDefendersBB and occupied at end of sequence
-                    kingBB = all_zero_bb();
-                    kingIndex = SquareNum;
-                    win = Attackers;  // do I want this to be -1 / 1 instead of 1 / 2?
+                    kingBB ^= SquareMaskBB[kingIndex];
                 }
             }
             else {
                 captures ^= kingBB;
-                kingBB = all_zero_bb();
-                kingIndex = SquareNum;
-                win = Attackers;
+                kingBB ^= SquareMaskBB[kingIndex];
             }
         }
         allDefendersBB ^= captures;
@@ -155,24 +166,23 @@ Bitboard Position::make_captures(Square to) {
 }
 
 void Position::do_move(Move move, StateInfo& newState) {
-    std::cout<<"doing the move in the position\n";
     assert(is_valid_move(move));
 
-    //update zobrist key
+    ZobristKey k = state->key;
+    std::cout<<"key at start of move: "<<k<<'\n';
+    k ^= Zobrist::side;
+    std::cout<<"key updated to new side: "<<k<<'\n';
 
     // handle state transfer
     // offsetof() means that I'm only copying up to previous. Everything else is computed during do_move for the new StateInfo object
     // after we switch out state pointer to point to the new state.
     std::memcpy(&newState, state, offsetof(StateInfo, previous));
-    std::cout<<"memcpy complete\n";
     newState.previous = state;
     state = &newState;
-    std::cout<<"current state swap complete\n";
 
     // increment plies
     ++gamePly;
     ++state->pliesFromNull;
-    std::cout<<"plies incremented\n";
 
     Side us = sideToMove;
     Side them = ~us;
@@ -183,15 +193,35 @@ void Position::do_move(Move move, StateInfo& newState) {
     assert(move.movedSide() == us);
 
     move_piece(pt, from, to);
-    std::cout<<"piece moved\n";
 
-    state->capturesBB = make_captures(to); // make captures on position, returning captured pawns (NOT KING) and saving them in StateInfo object
-    std::cout<<"captures made\n";
+    // increment hash key
+    k ^= Zobrist::psq[pt][from] ^ Zobrist::psq[pt][to];
+    std::cout<<"key updated post move: "<<k<<'\n';
+
+    Bitboard captures = make_captures(to); // make captures on position (including King), returning captured pawns (NOT KING) and saving them in StateInfo object
+    state->capturesBB = captures;
+
+    // loop thru captures to update Zobrist key
+    PieceType captured_pt = (us == Defenders) ? Attacker : Defender;
+    while (captures) {
+        Square sq = captures.bitscan_pop_forward();
+        k ^= Zobrist::psq[captured_pt][sq];
+        std::cout<<"key updated post capture: "<<k<<'\n';
+    }
+
+    // If king has been captured during captures routine, updates zobrist key, sets index to invalid square, and sets win
+    if (kingBB == EMPTY_BB) {
+        k ^= Zobrist::psq[King][kingIndex];
+        std::cout<<"key updated post king capture: "<<k<<'\n';
+        kingIndex = SquareNum;
+        win = Attackers;
+    }
+
+    state->key = k;
 
     sideToMove = ~sideToMove;
 
     state->move = move;
-    std::cout<<"ending move sequence\n";
 }
 
 // checks if position is surrounded
@@ -203,7 +233,6 @@ bool Position::is_surrounded(const Bitboard& allToSquares) const {
 
     // if defender is on / can move to the edge of the board
     if (reachable_sqs & EDGE_MASK) {
-        std::cout<<"not surrounded: defender can reach edge\n";
         return false;
     }
 
@@ -213,12 +242,10 @@ bool Position::is_surrounded(const Bitboard& allToSquares) const {
     }
 
     while (!queue.empty()) {
-        std::cout<<queue.front()<<'\n'; // check queue
         Square current = queue.front();
         queue.pop();
 
         if (SquareMaskBB[current] & EDGE_MASK) {
-            std::cout<<"edge found at square "<<current<<'\n';
             return false;
         }
 
@@ -226,18 +253,15 @@ bool Position::is_surrounded(const Bitboard& allToSquares) const {
         for (int i = 0; i < MAX_NEIGHBOURS; i++) {
             Square next = neighbour_sqs[i];
             if (next == SQ_NONE) break;
-            std::cout<<"neighbour: "<<next<<'\n';
             if (!visited.is_set(next) && !attackerBB.is_set(next)) {
                 queue.push(next);
                 visited.set_bit(next);
                 if (visited & EDGE_MASK) {
-                    std::cout<<"not surrounded: defender can reach edge\n";
                     return false;
                 }
             }
         }
     }
-    std::cout<<"surrounded"<<'\n';
     return true;
 }
 
@@ -294,33 +318,79 @@ void print_position(const Position& pos) {
     }
 }
 
+void Position::set_state(StateInfo* si) const {
+    si->key = 0;
+
+    for (Bitboard b = defender_bb(); b; ) {
+        Square sq = b.bitscan_pop_forward();
+        si->key ^= Zobrist::psq[Defender][sq];
+    }
+    for (Bitboard b = king_bb(); b; ) {
+        Square sq = b.bitscan_pop_forward();
+        si->key ^= Zobrist::psq[King][sq];
+    }
+    for (Bitboard b = attacker_bb(); b; ) {
+        Square sq = b.bitscan_pop_forward();
+        si->key ^= Zobrist::psq[Attacker][sq];
+    }
+
+    if (side_to_move() == Defenders) {
+        si->key ^= Zobrist::side;
+    }
+}
+
+// Adds on the repetitons to the Zobrist key. Keeping separate because 'raw' positional key important for repetition tracking, etc
+ZobristKey Position::full_key() const {
+    //auto reps = std::min(2, repetitions_count());  // max is 2 repetitions - in theory shouldnt need this except for invalid input?
+    auto reps = repetitions_count();
+    assert(reps <= 2);
+
+    return state->key ^ Zobrist::repetitions[reps];
+}
+
+// iterates backwards thru the states, comparing keys
+int Position::repetitions_count() const {
+    int end = state->pliesFromNull;
+
+    if (end < 4)  // minimum ply at which repetitions can start occuring
+        return 0;
+
+    StateInfo* state_p = state->previous->previous;  // points to side's last turn
+    int rep_count = 0;
+
+    for (int i = 4; i <= end; i += 2)
+    {
+        state_p = state_p->previous->previous;
+        if (state_p->capturesBB) {  // early breaking when there are captures - impossible for positions to be repeated. Could add a flag or counter (similar to chess 50 move rule)
+            return rep_count;
+        }
+        if (state_p->key == state->key) {
+            rep_count++;
+        }
+    }
+    return rep_count;
+}
+
 void BoardHistory::set(const std::string& fen) {
     positions.clear();
     states.clear();
 
     positions.emplace_back();
-    std::cout<<"position emplaced, size in now: "<<positions.size()<<"\n";
-    states.emplace_back(new StateInfo);
-    std::cout<<"state emplaced, size is now: "<<states.size()<<"\n";
+    states.emplace_back(new StateInfo());
     current_pos().set(fen, states.back().get());
 }
 
 BoardHistory BoardHistory::shallow_clone() const {
     BoardHistory bh;
-    std::cout<<"initiating shallow copy...\n";
     for (int i = std::max(0, static_cast<int>(positions.size()) - 8); i < static_cast<int>(positions.size()); ++i) {
         bh.positions.push_back(positions[i]);
-        std::cout<<"shallow copy "<<i<<" complete\n";
     }
-    std::cout<<"shallow copy complete\n";
     return bh;
 }
 
 void BoardHistory::do_move(Move m) {
     states.emplace_back(new StateInfo);
-    std::cout<<"StateInfo pushed back\n";
     positions.push_back(positions.back());
-    std::cout<<"position pushed back\n";
     positions.back().do_move(m, *states.back());
 }
 
