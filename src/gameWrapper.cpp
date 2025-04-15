@@ -11,7 +11,6 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
     static RandomGenerator rng; // would have to change this to run games in parallel
     for (int game_ply = 0; game_ply < 400; ++game_ply) {
         print_position(bh.current_pos());
-        std::cout<<bh.current_pos().winner()<<'\n';
         Move move;
         if (bh.current_pos().side_to_move() == Attackers) {
             move = attackerAgent(bh.shallow_clone(), rng);
@@ -19,28 +18,37 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
         else {
             move = defenderAgent(bh.shallow_clone(), rng);
         }
-        std::cout<<"about to do move\n";
-        bh.do_move(move); // need to add something in move / here to guard against no possible move scenarios
-        std::cout<<"Move made...\n";
-        if (bh.current_pos().winner() != sideNum) {
+
+        bh.do_move(move);
+
+        if (bh.current_pos().winner() != sideNum) {  // if the move is a king capture / king escape
             print_position(bh.current_pos());
             return bh.current_pos().winner();
         }
-        // check move list, check for surrounds.
-        // TODO: test all win conditions
-        MoveList moves(bh.current_pos());
+
+        // check for win by repetitions. As this can only be claimed by the Defender, only checking this after Attacker moves
+        if (bh.current_pos().side_to_move() == Defenders) {
+            int reps = bh.current_pos().repetitions_count();
+            if (reps == 3) {
+                print_position(bh.current_pos());
+                return Attackers;
+            }
+        }
+
+        MoveList moves_next(bh.current_pos());  // generating next moves a) to ensure that opponent can move b) more effecient surrounding win check
+
         // if player can't move, opponent wins
-        if (moves.size() == 0) {
+        if (moves_next.size() == 0) {
             return ~bh.current_pos().side_to_move();
         }
         // check for surrounding wins from Attackers
         if (bh.current_pos().side_to_move() == Defenders) {
-            if (bh.current_pos().is_surrounded(moves.all_to_squares())) {  // if no overlap between edge squares and all 'to' squares, flood fill
+            if (bh.current_pos().is_surrounded(moves_next.all_to_squares())) {  // if no overlap between edge squares and all 'to' squares, flood fill
                 return Attackers;
             }
         }
     }
-    return sideNum;
+    return sideNum;  // in event that no winner is found after max game plies
 }
 
 int play_one_game(AgentFunction attackerAgent, AgentFunction defenderAgent) {

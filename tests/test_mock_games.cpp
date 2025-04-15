@@ -19,7 +19,7 @@ int play_one_game(BoardHistory& bh, const std::vector<Move>& moves_played) {
             print_position(bh.current_pos());
             return -1;
         }
-        bh.do_move(move); // need to add something in move / here to guard against no possible move scenarios
+        bh.do_move(move);
         if (bh.current_pos().winner() != sideNum) {
             print_position(bh.current_pos());
             return bh.current_pos().winner();
