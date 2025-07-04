@@ -1,5 +1,8 @@
 #include "position.hpp"
 #include "UCTNode.hpp"
+#include "parameters.hpp"
+#include "training.hpp"
+#include "config.hpp"
 
 
 // win probabilities in range 0-1 where 0 represents Defenders win, 1 represents Attacker win
@@ -30,16 +33,21 @@ class UCTSearch {
 public:
     // max size of search tree in memory
     // TODO: find approx size of nodes
-    static constexpr auto MAX_TREE_SIZE = 40'000'000;
+    static constexpr auto MAX_TREE_SIZE = 40000;
 
     // can also have some kind of quiet flag here
 
     UCTSearch(BoardHistory&& bh);
-    Move think(BoardHistory&& bh);
+    Move search(BoardHistory&& bh);
     SearchResult play_simulation(BoardHistory& bh, UCTNode* const node, int ndepth);
+
+    void increment_playouts();
+    bool is_running();
+    bool playout_limit_reached();
 
 private:
     void dump_stats(BoardHistory& pos, UCTNode& parent);
+    void dump_analysis(int64_t elapsed);
     Move get_best_move();
 
     BoardHistory bh_;
@@ -48,7 +56,20 @@ private:
     std::atomic<int> m_nodes{0};
     std::atomic<int> m_playouts{0};
     std::atomic<int> m_max_depth{0};
+    std::atomic<bool> m_run{false};
+    std::chrono::steady_clock::time_point m_start_time;
 
     int m_max_playouts;
     int m_max_nodes;
+};
+
+class UCTWorker {
+public:
+    UCTWorker(const BoardHistory& bh, UCTSearch* search, UCTNode* root)
+      : bh_(bh), m_search(search), m_root(root) {}
+    void operator()();
+private:
+    const BoardHistory& bh_;
+    UCTSearch* m_search;
+    UCTNode* m_root;
 };

@@ -13,19 +13,19 @@ namespace Zobrist {
 
 // Generate random 64-bit integers for each piece-square pair, side, repetition counter
 void Position::initZobrist() {
-    RandomGenerator rng;
 
     for (PieceType pt = Defender; pt < PieceNum; ++pt) {
         for (Square sq = SQA1; sq < SquareNum; ++sq) {
-            Zobrist::psq[pt][sq] = rng.random_u64();
+            Zobrist::psq[pt][sq] = RandomGenerator::random_u64();
         }
     }
 
-    Zobrist::side = rng.random_u64();
+    Zobrist::side = RandomGenerator::random_u64();
 
     for (int i = 0; i < 3; ++i) {
-        Zobrist::repetitions[i] = rng.random_u64();
+        Zobrist::repetitions[i] = RandomGenerator::random_u64();
     }
+    std::cout<<"zobrist keys initiated\n";
 };
 
 Position& Position::set(const std::string& fenStr, StateInfo* si) {

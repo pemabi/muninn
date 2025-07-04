@@ -90,7 +90,14 @@ inline int count1s(u64 x)
     return (static_cast<int>(x)) & 0x0000007f;
 }
 
-// TODO: change this to a singleton, maybe
+template<typename T>
+void atomic_add(std::atomic<T> &target, T value) {
+    T expected = target.load();
+    while (!target.compare_exchange_weak(expected, expected + value));
+}
+
+// Changed this to include a singleton pattern. Kept the initial class constructor / methods to avoid refactoring.
+// TODO: refactor to use singleton pattern
 class RandomGenerator {
 private:
     std::mt19937_64 mt;
@@ -98,17 +105,52 @@ private:
 public:
     RandomGenerator() : mt(std::random_device{}()) {}
 
-    u64 random_u64() {
+    // Instance methods with different names
+    u64 generate_u64() {
         return mt();
     }
 
-    u64 random_u64_sparse() {
+    u64 generate_u64_sparse() {
         return mt() & mt() & mt();
     }
 
-    int random_int(int min, int max) {
+    int generate_int(int min, int max) {
         std::uniform_int_distribution<int> dist(min, max);
         return dist(mt);
+    }
+
+    std::mt19937_64& get_generator() {
+        return mt;
+    }
+
+    void seed(uint64_t seed) {
+        mt.seed(seed);
+    }
+
+    // Static methods keep the clean names
+    static RandomGenerator& instance() {
+        thread_local static RandomGenerator rng;
+        return rng;
+    }
+
+    static u64 random_u64() {
+        return instance().generate_u64();
+    }
+
+    static u64 random_u64_sparse() {
+        return instance().generate_u64_sparse();
+    }
+
+    static int random_int(int min, int max) {
+        return instance().generate_int(min, max);
+    }
+
+    static std::mt19937_64& get_rng() {
+        return instance().get_generator();
+    }
+
+    static void seed_global(uint64_t seed) {
+        instance().seed(seed);
     }
 };
 

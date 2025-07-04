@@ -66,6 +66,7 @@ public:
     Side side_to_move() const;
     int game_ply() const;
     Side winner() const;
+    Move get_move() const;
     // maybe add some repetition counters etc here
     bool is_surrounded(const Bitboard& allToSquares) const;
     int repetitions_count() const;
@@ -143,6 +144,10 @@ inline Bitboard Position::all_defenders_from_pieces() const {
 
 inline Bitboard Position::occupied_from_pieces() const {
     return attackerBB | defenderBB | kingBB;
+}
+
+inline Move Position::get_move() const {
+    return state->move;
 }
 
 inline void Position::put_piece(PieceType pt, Square sq) {

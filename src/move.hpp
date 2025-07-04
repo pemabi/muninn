@@ -54,6 +54,14 @@ inline Move encodeMove(const PieceType pt, const Square from, const Square to) {
 
 bool is_valid_move(Move move);
 
+// specialise std::hash for Move class - used to map to NN output space
+template<>
+struct std::hash<Move> {
+    std::size_t operator()(const Move& move) const noexcept {
+        return std::hash<std::uint16_t>{}(move.value());
+    }
+};
+
 // todo: add struct that bundles move with other data (move score, captured pieces?)
 
 // returns pointer to the end of the move list
@@ -66,6 +74,7 @@ struct MoveList {
     const Move* end() const { return last; }
 
     size_t size() const { return last - moveList; }
+    bool empty() const { return size() == 0; }
 
     const Move get_move_by_index(int i) {
         if (i < size()) {

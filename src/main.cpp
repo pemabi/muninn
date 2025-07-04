@@ -38,7 +38,9 @@ int main() {
 
 #ifdef TEST_MODE
 
-    RandomGenerator rng;
+    init_table();
+
+    gameWrapper::loop();
 
 
 
