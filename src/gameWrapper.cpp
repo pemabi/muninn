@@ -61,7 +61,7 @@ int play_one_game(AgentFunction attackerAgent, AgentFunction defenderAgent) {
 }
 
 void loop() {
-    int result = play_one_game(Agent::random, Agent::random);
+    int result = play_one_game(Agent::player, Agent::player);
     std::cout<<result<<" wins\n";
 }
 

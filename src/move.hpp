@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "common.hpp"
 #include "square.hpp"
 #include "pieces.hpp"
@@ -36,7 +38,6 @@ public:
 
     bool operator == (const Move& m) const {return value_ == m.value_; }
     bool operator != (const Move& m) const {return value_ != m.value_; }
-
 
 private:
     u16 value_;
@@ -87,6 +88,16 @@ struct MoveList {
     }
 
     Bitboard all_to_squares() const { return allToSquares; }
+
+    bool contains(Move& move) const {
+        for (const Move* it = begin(); it != end(); ++it) {
+            if (*it == move) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 private:
     Bitboard allToSquares;  // how I would like to structure this
