@@ -10,6 +10,7 @@
 #include <string>
 #include <cassert>
 
+// TODO remove or replace with Side: unless I am wrong, this is not used anywhere
 enum GameResult : int8_t  {   // no draws in the game - maybe add win type for more info?
     AttackerWin, DefenderWin, GameResultNum
 };
@@ -70,6 +71,8 @@ public:
     // maybe add some repetition counters etc here
     bool is_surrounded(const Bitboard& allToSquares) const;
     int repetitions_count() const;
+
+    Side check_winner() const;
 
     Bitboard all_defenders_from_pieces() const;
     Bitboard occupied_from_pieces() const;

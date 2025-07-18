@@ -8,6 +8,18 @@ using AgentFunction = std::function<Move(const BoardHistory&)>;
 
 namespace gameWrapper {
 
+void print_result(int res) {
+    switch (res) {
+        case 0: std::cout<<"Defender Wins by King Escape!"; break;
+        case 1: std::cout<<"Attacker Wins by King Capture!"; break;
+        case 2: std::cout<<"Attacker Wins by Repetition!"; break;
+        case 3: std::cout<<"Defender Wins - No Attacker Moves!"; break;
+        case 4: std::cout<<"Attacker Wins - No Defender Moves!"; break;
+        case 5: std::cout<<"Attacker Wins by Surrounding!"; break;
+        case 6: std::cout<<"No Winner - Hit Ply Limit!"; break;
+    }
+}
+
 int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction defenderAgent) {
     for (int game_ply = 0; game_ply < 400; ++game_ply) {
         print_position(bh.current_pos());
@@ -23,6 +35,7 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
 
         if (bh.current_pos().winner() != sideNum) {  // if the move is a king capture / king escape
             print_position(bh.current_pos());
+            print_result(static_cast<int>(bh.current_pos().winner()));
             return bh.current_pos().winner();
         }
 
@@ -30,6 +43,7 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
         if (bh.current_pos().side_to_move() == Defenders) {
             int reps = bh.current_pos().repetitions_count();
             if (reps == 3) {
+                print_result(2);
                 print_position(bh.current_pos());
                 return Attackers;
             }
@@ -40,16 +54,25 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
         // if player can't move, opponent wins
         if (moves_next.size() == 0) {
             print_position(bh.current_pos());
+            if (bh.current_pos().side_to_move() == Attackers) {
+                print_result(3);
+            } else {
+                print_result(4);
+            }
             return ~bh.current_pos().side_to_move();
         }
+
         // check for surrounding wins from Attackers
         if (bh.current_pos().side_to_move() == Defenders) {
             if (bh.current_pos().is_surrounded(moves_next.all_to_squares())) {  // if no overlap between edge squares and all 'to' squares, flood fill
                 print_position(bh.current_pos());
+                print_result(5);
                 return Attackers;
             }
         }
     }
+    print_position(bh.current_pos());
+    print_result(6);
     return sideNum;  // in event that no winner is found after max game plies
 }
 
@@ -64,7 +87,6 @@ int play_one_game(AgentFunction attackerAgent, AgentFunction defenderAgent) {
 
 void loop() {
     int result = play_one_game(Agent::player, Agent::player);
-    std::cout<<result<<" wins\n";
 }
 
 }

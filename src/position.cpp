@@ -371,6 +371,34 @@ int Position::repetitions_count() const {
     return rep_count;
 }
 
+/*
+    1. has the Position win flag been set? (King capture - Attacker / escape - Defender)
+    2. has the position been repeated? (Attacker)
+    3. are there moves available? (side to move loses)
+    4. if the Attackers just moved, are the Defenders surrounded? (Attacker)
+    5. otherwise, sideNum
+*/
+Side Position::check_winner() const {
+    if (win != sideNum) {
+        return win;
+    }
+    if (repetitions_count() == 3) {
+        return Attackers;
+    }
+
+    MoveList move_list(*this);  // is there a way to only generate moveList once? storing it in position seems a bad option UNLESS it is discarded in shallow copy?
+                                // or there is the chance I retroactively add the moveList dependent winning conditions with some early exiting logic? This approach not as clean
+    if (move_list.empty()) {
+        return ~sideToMove;
+    }
+    if (sideToMove == Defenders) {
+        if (is_surrounded(move_list.all_to_squares())) {
+            return Attackers;
+        }
+    }
+    return sideNum;
+}
+
 void BoardHistory::set(const std::string& fen) {
     positions.clear();
     states.clear();

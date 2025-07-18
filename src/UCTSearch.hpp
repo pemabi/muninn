@@ -45,6 +45,9 @@ public:
     bool is_running();
     bool playout_limit_reached();
 
+    void set_playout_limit(int playouts);
+    void set_node_limit(int nodes);
+
 private:
     void dump_stats(BoardHistory& pos, UCTNode& parent);
     void dump_analysis(int64_t elapsed);

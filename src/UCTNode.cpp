@@ -57,8 +57,8 @@ float UCTNode::get_eval(Side side) const {
         }
 
         float score = static_cast<float>(attacker_eval / (double)visits);
-        if (side == Defenders) {  // TODO: is this right? which side?
-            score = 1.0f - score;
+        if (side == Defenders) {  // Attacker win = 1, Defender win = -1
+            score = 1.0f - score;   // accumulated eval is scored from attacker perspective
         }
         return score;
     } else {
@@ -93,7 +93,7 @@ bool UCTNode::create_children(std::atomic<int>& node_count, const BoardHistory& 
     float net_eval = net_results.eval;
     Side to_move = state.current_pos().side_to_move();
 
-    if (to_move == Attackers) {  // TODO: decide whether Attackers = 1.0 or Defenders = 1.0
+    if (to_move == Defenders) {
         net_eval = 1.0f - net_eval;
     }
     eval = net_eval;

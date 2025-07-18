@@ -36,6 +36,7 @@ NetworkOutput Network::get_raw_output(const BoardHistory& pos, bool cache) {
 
 }
 
+// TODO: filtering the moves out here will necessitate calculating all moves again from position - better to do this in Node where I have all the child nodes / moves
 NetworkOutput Network::get_filtered_output(const BoardHistory& pos, bool cache) {
 
     NetworkOutput out = get_raw_output(pos, cache);
@@ -74,4 +75,10 @@ void Network::gather_features(const BoardHistory& bh, NNPlanes& planes) {
 NetResult Network::get_scored_moves(const BoardHistory& bh) {
     NetResult result;
     return result;
+}
+
+NetworkOutput Network::get_filtered_output_fake(const BoardHistory& pos, bool cache) {
+  // TODO: change this to filter Nodes out in node.cpp
+  // implement uniform prob distribtion
+
 }

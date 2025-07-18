@@ -1,17 +1,21 @@
+#include <type_traits>
+#include <assert.h>
+
 #include "UCTSearch.hpp"
 #include "timing.hpp"
 
 UCTSearch::UCTSearch(BoardHistory&& bh) : bh_(std::move(bh)) {
-  // can add config limits for playout / node limits later
-
-  m_root = std::make_unique<UCTNode>(moveNone(), 0.0f, 0.5f);
+    // can add config limits for playout / node limits later
+    set_playout_limit(cfg_max_playouts);
+    set_node_limit(cfg_max_nodes);
+    m_root = std::make_unique<UCTNode>(moveNone(), 0.0f, 0.5f);
 }
 
 SearchResult UCTSearch::play_simulation(BoardHistory& bh, UCTNode* const node, int ndepth) {
     const Position& current = bh.current_pos();
     const Side& side = current.side_to_move();
 
-    auto result = SearchResult{};
+    auto result = SearchResult{}; // default initialisation means m_valid == false. When it is initialised from score / eval, m_valid will be true
 
     // in case of MT
     //node->virtual_loss();
@@ -20,22 +24,31 @@ SearchResult UCTSearch::play_simulation(BoardHistory& bh, UCTNode* const node, i
         m_max_depth = ndepth;
     }
 
-    if (!node->has_children()) {    // if the node has no children, either a leaf node or no possible moves
-        if (!MoveList(current).size()) {    // if no possible moves, return result as opponent win
-            float score = side == Attackers ? -1.0 : 1.0;  // if it is Attackers turn, returns -1. Defenders returns 1.
-            result = SearchResult::from_score(score);
-        }
+    /*
+    1. Is this a leaf node?
+        a) If this is a terminal node, result == winning score
+        b) If not terminal, and tree size is within limits, create children, use Network to assign initial child move probs, result == Network eval
+    2. If not a leaf node, and no valid result found
+        a) Select best child, make the move, then recursively call this function
+        b) if best child is not a leaf node and there is not valid result, recursion continues
+        c) if best child is a leaf node, there will be a valid result.
+    3. If there is a valid result, update the node eval
+    */
 
-        else if (m_nodes < MAX_TREE_SIZE) {   // otherwise, this is a leaf node so expand node and return result as engine eval (initial scoring)
-            float eval;
-            bool success = node->create_children(m_nodes, bh, eval);
-            if (success) {
-                result = SearchResult::from_eval(eval);
-            }
+    Side winner = current.check_winner();
+    // handle leaf node cases: terminal and unexplored node
+    if (winner != sideNum) {  // is this a terminal node?
+        float score = winner == Attackers ? 1.0 : -1.0;   // Attacker win = 1, Defender = -1
+        result = SearchResult::from_score(score);
+    } else if (!node->has_children() && m_nodes < MAX_TREE_SIZE) {   // otherwise, expand node and return result as engine eval (initial scoring)
+        float eval;
+        bool success = node->create_children(m_nodes, bh, eval);
+        if (success) {
+            result = SearchResult::from_eval(eval);
         }
     }
 
-    if (node->has_children() && !result.valid()) {  // if node has children, and there is no valid result, recursion thru tree until we get a result
+    if (node->has_children() && !result.valid()) {  // if node has children, and there is not yet a valid result, recursion thru tree (selection) until we get a result (expansion)
         UCTNode* next = node->uct_select(side, node == m_root.get());
         Move move = next->get_move();
         bh.do_move(move);
@@ -43,17 +56,17 @@ SearchResult UCTSearch::play_simulation(BoardHistory& bh, UCTNode* const node, i
     }
 
     if (result.valid()) {
-        node->update(result.eval());
+        node->update(result.eval());  // if a valid result has been found, increment node visits and update eval. Clever effect of working 'back up' the recursion to update the whole branch from root node
     }
-    //node->virtual_loss_undo();
+    //  TODO: node->virtual_loss_undo();
 
-    return result;
+    return result;  // only should be reached if there is a complete, valid SearchResult
 }
 
 Move UCTSearch::search(BoardHistory&& bh) {
 
     Time start_time;
-    // look for the position in our search tree
+    // look for the position in our search tree. Only useful if we are analysing positions, etc. RL will create a new Search Tree every time search is called
     m_root = m_root->find_new_root(m_prevroot_full_key, bh);
 
     if (!m_root) {
@@ -74,15 +87,18 @@ Move UCTSearch::search(BoardHistory&& bh) {
     }
 
     if (cfg_noise) {
-        m_root->dirichlet_noise(0.25f, 0.3f);
+        m_root->dirichlet_noise(cfg_dirichlet_epsilon, cfg_dirichlet_alpha);
     }
 
     m_run = true;
     //int cpus = cfg_num_threads;
     // TODO: threadpool stuff
-    // ThreadGroup tg(thread_pool)
+    //ThreadGroup tg(thread_pool);
+    //for (int i = 1; i < cpus; ++i) {
+    //    tg.add_task(UCTWorker(bh_, this, m_root.get()));
+    //}
 
-    UCTWorker(bh_, this, m_root.get());
+    //UCTWorker(bh_, this, m_root.get());
 
     bool keep_running = true;
     int last_update = 0;
@@ -106,7 +122,6 @@ Move UCTSearch::search(BoardHistory&& bh) {
     dump_stats(bh_, *m_root);
     Training::record(bh_, *m_root);
 
-    // TODO: add timing stuff for analysis
     int ms_elapsed = Time::timediff_millis(start_time, Time());
     dump_analysis(ms_elapsed);
 
@@ -136,7 +151,7 @@ void UCTSearch::dump_analysis(int64_t elapsed) {
     int visits = m_root->get_visits();
     int depth = m_max_depth;  // this is a slightly irrelevant stat
 
-    // TODO: make this thread safe with custom print func
+    // TODO: make this thread safe with custom print func? actually - I think that by the time we're here the multi-threading will be done
     printf("search info: depth %d | nodes %d | nps %0.f | eval %0.f | time %lld\n",
     depth, visits, 1000.0 * m_playouts / (elapsed + 1), eval, elapsed);
 }
@@ -155,6 +170,24 @@ bool UCTSearch::playout_limit_reached() {
 
 void UCTSearch::dump_stats(BoardHistory& pos, UCTNode& parent) {
   // print out stats for each search run
+}
+
+void UCTSearch::set_playout_limit(int playouts) {
+    static_assert(std::is_convertible<decltype(playouts), decltype(m_max_playouts)>::value, "Inconsistent types for playout amount.");
+    if (playouts == 0) {
+        m_max_playouts = 10000;
+    } else {
+        m_max_playouts = playouts;
+    }
+}
+
+void UCTSearch::set_node_limit(int nodes) {
+    static_assert(std::is_convertible<decltype(nodes), decltype(m_max_nodes)>::value, "Inconsistent types for node amount.");
+    if (nodes == 0) {
+        m_max_nodes = 500;
+    } else {
+        m_max_nodes = nodes;
+    }
 }
 
 void UCTWorker::operator()() {

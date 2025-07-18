@@ -36,6 +36,7 @@ public:
     static NetResult get_scored_moves(const BoardHistory& state);
 
     static NetworkOutput get_filtered_output(const BoardHistory& state, bool cache = false);
+    static NetworkOutput get_filtered_output_fake(const BoardHistory& state, bool cache = false);
 
     static NetworkOutput get_raw_output(const BoardHistory& state, bool cache = false);
 
