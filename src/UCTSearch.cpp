@@ -120,7 +120,7 @@ Move UCTSearch::search(BoardHistory&& bh) {
     }
 
     dump_stats(bh_, *m_root);
-    Training::record(bh_, *m_root);
+    //Training::record(bh_, *m_root);
 
     int ms_elapsed = Time::timediff_millis(start_time, Time());
     dump_analysis(ms_elapsed);

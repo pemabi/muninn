@@ -5,8 +5,8 @@ int cfg_max_moves;
 int cfg_max_playouts;
 int cfg_max_nodes;
 int cfg_num_threads;
-int cfg_dirichlet_epsilon;
-int cfg_dirichlet_alpha;
+float cfg_dirichlet_epsilon;
+float cfg_dirichlet_alpha;
 
 void Config::setup_default_config() {
     cfg_verbose = true;

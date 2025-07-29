@@ -1,5 +1,5 @@
 CXX = c++
-CXXFLAGS = -std=c++14
+CXXFLAGS = -std=c++14 -g
 main: src/*.cpp
 	$(CXX) $(CXXFLAGS) src/*.cpp -o main
 

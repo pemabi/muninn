@@ -86,7 +86,7 @@ int play_one_game(AgentFunction attackerAgent, AgentFunction defenderAgent) {
 }
 
 void loop() {
-    int result = play_one_game(Agent::player, Agent::player);
+    int result = play_one_game(Agent::rl_training, Agent::rl_training);
 }
 
 }

@@ -63,6 +63,7 @@ NetworkOutput Network::get_filtered_output(const BoardHistory& pos, bool cache) 
 
 int Network::lookup(Move move) {
   // mask off Piece Type
+  std::cout<<"Lookup for move " << move.value() << " | Move from: " << move.from() << " | Move to: " << move.to() << " | Piece: " << move.movedPiece() << "\n";
   move = Move(move.value() | PieceNum << 14);  // ugly syntax
 
   return move_lookup.at(move);
@@ -77,8 +78,20 @@ NetResult Network::get_scored_moves(const BoardHistory& bh) {
     return result;
 }
 
-NetworkOutput Network::get_filtered_output_fake(const BoardHistory& pos, bool cache) {
-  // TODO: change this to filter Nodes out in node.cpp
+NetworkOutput Network::get_filtered_output_fake(const BoardHistory& bh, bool cache) {
   // implement uniform prob distribtion
+  NetworkOutput output;
 
+  MoveList moves(bh.current_pos());
+
+  float uniform_prob = 1.0f / moves.size();  // uniform probability distribution
+
+  for (const auto& move : moves) {
+      output.move_probs.emplace_back(ScoredNode{uniform_prob, move});
+  }
+
+  std::uniform_real_distribution<float> eval_dist(0.45f, 0.55f);
+  output.eval = eval_dist(RandomGenerator::get_rng());
+
+  return output;
 }

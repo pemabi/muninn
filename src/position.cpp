@@ -96,7 +96,6 @@ Position& Position::set(const std::string& fenStr, StateInfo* si) {
   state->pliesFromNull = ply;
 
   set_state(state);
-  std::cout<<"inital key: "<<state->key<<'\n';
 
   return *this;
 }
@@ -169,9 +168,7 @@ void Position::do_move(Move move, StateInfo& newState) {
     assert(is_valid_move(move));
 
     ZobristKey k = state->key;
-    std::cout<<"key at start of move: "<<k<<'\n';
     k ^= Zobrist::side;
-    std::cout<<"key updated to new side: "<<k<<'\n';
 
     // handle state transfer
     // offsetof() means that I'm only copying up to previous. Everything else is computed during do_move for the new StateInfo object
@@ -196,7 +193,6 @@ void Position::do_move(Move move, StateInfo& newState) {
 
     // increment hash key
     k ^= Zobrist::psq[pt][from] ^ Zobrist::psq[pt][to];
-    std::cout<<"key updated post move: "<<k<<'\n';
 
     Bitboard captures = make_captures(to); // make captures on position (including King), returning captured pawns (NOT KING) and saving them in StateInfo object
     state->capturesBB = captures;
@@ -206,13 +202,11 @@ void Position::do_move(Move move, StateInfo& newState) {
     while (captures) {
         Square sq = captures.bitscan_pop_forward();
         k ^= Zobrist::psq[captured_pt][sq];
-        std::cout<<"key updated post capture: "<<k<<'\n';
     }
 
     // If king has been captured during captures routine, updates zobrist key, sets index to invalid square, and sets win
     if (kingBB == EMPTY_BB) {
         k ^= Zobrist::psq[King][kingIndex];
-        std::cout<<"key updated post king capture: "<<k<<'\n';
         kingIndex = SquareNum;
         win = Attackers;
     }

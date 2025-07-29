@@ -81,7 +81,7 @@ Move UCTNode::get_move() const {
 bool UCTNode::create_children(std::atomic<int>& node_count, const BoardHistory& state, float& eval) {
     // MT - need to add the priority checks and mutex locks
 
-    NetworkOutput net_results = Network::get_filtered_output(state);
+    NetworkOutput net_results = Network::get_filtered_output_fake(state);
     // Network need to create a struct etc with 1 probs / move pairing, and one engine eval
     // TODO: also want to change the type from auto here to that Network struct
 
