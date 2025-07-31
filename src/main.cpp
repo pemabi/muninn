@@ -5,6 +5,7 @@
 #include "init.hpp"
 #include "magics.hpp"
 #include "gameWrapper.hpp"
+#include "config.hpp"
 
 std::vector<std::string> load_test_fens(const std::string& filename) {
     std::vector<std::string> fens;
@@ -39,6 +40,7 @@ int main() {
 #ifdef TEST_MODE
 
     init_table();
+    Config::setup_default_config();
 
     gameWrapper::loop();
 

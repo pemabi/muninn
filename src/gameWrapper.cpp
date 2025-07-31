@@ -18,6 +18,7 @@ void print_result(int res) {
         case 5: std::cout<<"Attacker Wins by Surrounding!"; break;
         case 6: std::cout<<"No Winner - Hit Ply Limit!"; break;
     }
+    std::cout<<"\n";
 }
 
 int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction defenderAgent) {

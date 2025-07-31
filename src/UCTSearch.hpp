@@ -33,7 +33,7 @@ class UCTSearch {
 public:
     // max size of search tree in memory
     // TODO: find approx size of nodes
-    static constexpr auto MAX_TREE_SIZE = 40000;
+    static constexpr auto MAX_TREE_SIZE = 4'000'000;
 
     // can also have some kind of quiet flag here
 

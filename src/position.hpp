@@ -210,7 +210,6 @@ inline void Position::move_piece(PieceType pt, Square from, Square to) {
         allDefendersBB ^= moveBB;
         kingIndex = to;
         if (moveBB & EDGE_MASK) {
-            std::cout<<"defender move win\n";
             win = Defenders;
         }
     }
