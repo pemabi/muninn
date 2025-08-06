@@ -9,11 +9,11 @@ void Training::clear_training() {
 void Training::record(const BoardHistory& state, UCTNode& root) {
     auto step = TimeStep{};
     step.to_move = state.current_pos().side_to_move();
-    step.planes = Network::NNPlanes{};
-    Network::gather_features(state, step.planes);
+    //step.planes = Network::NNPlanes{};
+    //Network::gather_features(state, step.planes);
 
-    NetResult result = Network::get_scored_moves(state);
-    step.net_winrate = result.eval;
+    //NetResult result = Network::get_scored_moves(state);
+    //step.net_winrate = result.eval;
 
     const auto& best_node = root.get_best_root_child(step.to_move);
     step.root_uct_winrate = root.get_eval(step.to_move);

@@ -3,21 +3,21 @@
 #include "sides.hpp"
 #include "bitboard.hpp"
 
-static Move* generate_attacker_moves(const Position& pos, Move* moveList);
+static Move* generate_attacker_moves(const Position& pos, Move* moveList, Bitboard* allToSquares);
 static Move* generate_defender_moves(const Position& pos, Move* moveList, Bitboard* allToSquares);
 static Move* generate_king_moves(const Position& pos, Move* moveList, Bitboard* allToSquares);
 
 
 Move* generate(const Position& pos, Move* moveList, Bitboard* allToSquares) {
+    *allToSquares = all_zero_bb();
     Side us = pos.side_to_move();
 
-    return us == Attackers ? generate_attacker_moves(pos, moveList)
+    return us == Attackers ? generate_attacker_moves(pos, moveList, allToSquares)
                         : generate_defender_moves(pos, moveList, allToSquares);
-
 }
 
 // Make some tests for cross referencing moves vs manual checking
-static Move* generate_attacker_moves(const Position& pos, Move* moveList) {
+static Move* generate_attacker_moves(const Position& pos, Move* moveList, Bitboard* allToSquares) {
     Bitboard attacker_pieces = pos.attacker_bb();
     Bitboard occupied = pos.occupied_bb();
 
@@ -26,6 +26,8 @@ static Move* generate_attacker_moves(const Position& pos, Move* moveList) {
 
         Bitboard moves = get_moves_unmasked(from, occupied);
         moves &= (~occupied & THRONE_OUT_MASK);  // getting rid of blockers and throne square
+
+        *allToSquares |= moves;
 
         while (moves) {
             Square to = moves.bitscan_pop_forward();
@@ -40,9 +42,6 @@ static Move* generate_attacker_moves(const Position& pos, Move* moveList) {
 static Move* generate_defender_moves(const Position& pos, Move* moveList, Bitboard* allToSquares) {
     Bitboard defender_pieces = pos.defender_bb();
     Bitboard occupied = pos.occupied_bb();
-    Bitboard composite_moves = all_zero_bb();
-
-    *allToSquares = all_zero_bb();
 
     while (defender_pieces) {
         Square from = defender_pieces.bitscan_forward();

@@ -25,26 +25,27 @@ SearchResult UCTSearch::play_simulation(BoardHistory& bh, UCTNode* const node, i
     }
 
     /*
-    1. Is this a leaf node?
-        a) If this is a terminal node, result == winning score
-        b) If not terminal, and tree size is within limits, create children, use Network to assign initial child move probs, result == Network eval
-    2. If not a leaf node, and no valid result found
-        a) Select best child, make the move, then recursively call this function
-        b) if best child is not a leaf node and there is not valid result, recursion continues
-        c) if best child is a leaf node, there will be a valid result.
-    3. If there is a valid result, update the node eval
+
+    Does the node have children?
+        n) is the node terminal?
+            y) return winner
+            n) expand node
+        y) Is there a valid result yet?
+            n) continue selection recursively
+            y) update the node (will work back upstream)
     */
 
-    Side winner = current.check_winner();
-    // handle leaf node cases: terminal and unexplored node
-    if (winner != sideNum) {  // is this a terminal node?
-        float score = winner == Attackers ? 1.0 : -1.0;   // Attacker win = 1, Defender = -1
-        result = SearchResult::from_score(score);
-    } else if (!node->has_children() && m_nodes < MAX_TREE_SIZE) {   // otherwise, expand node and return result as engine eval (initial scoring)
-        float eval;
-        bool success = node->create_children(m_nodes, bh, eval);
-        if (success) {
-            result = SearchResult::from_eval(eval);
+    if (!node->has_children() && m_nodes < MAX_TREE_SIZE) {
+        Side winner = current.check_winner();
+        if (winner != sideNum) {
+            float score = winner == Attackers ? 1.0 : -1.0;   // Attacker win = 1, Defender = -1
+            result = SearchResult::from_score(score);
+        } else {
+            float eval;
+            bool success = node->create_children(m_nodes, bh, eval);
+            if (success) {
+                result = SearchResult::from_eval(eval);
+            }
         }
     }
 
@@ -56,7 +57,7 @@ SearchResult UCTSearch::play_simulation(BoardHistory& bh, UCTNode* const node, i
     }
 
     if (result.valid()) {
-        node->update(result.eval());  // if a valid result has been found, increment node visits and update eval. Clever effect of working 'back up' the recursion to update the whole branch from root node
+        node->update(result.eval());  // if a valid result has been found, increment node visits and update eval. effect of working 'back up' the recursion to update the whole branch from root node
     }
     //  TODO: node->virtual_loss_undo();
 
@@ -120,7 +121,7 @@ Move UCTSearch::search(BoardHistory&& bh) {
     }
 
     dump_stats(bh_, *m_root);
-    //Training::record(bh_, *m_root);
+    Training::record(bh_, *m_root);
 
     int ms_elapsed = Time::timediff_millis(start_time, Time());
     dump_analysis(ms_elapsed);

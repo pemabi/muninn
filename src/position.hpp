@@ -66,7 +66,6 @@ public:
     Square king_index() const;
     Side side_to_move() const;
     int game_ply() const;
-    Side winner() const;
     Move get_move() const;
     // maybe add some repetition counters etc here
     bool is_surrounded(const Bitboard& allToSquares) const;
@@ -100,7 +99,6 @@ private:
     Square kingIndex;
     int gamePly;
     Side sideToMove;
-    Side win;
 
     StateInfo* state; // TODO: change code so that only references to this member are called state
 };
@@ -135,10 +133,6 @@ inline Square Position::king_index() const {
 
 inline int Position::game_ply() const {
     return gamePly;
-}
-
-inline Side Position::winner() const {
-    return win;
 }
 
 inline Bitboard Position::all_defenders_from_pieces() const {
@@ -209,9 +203,6 @@ inline void Position::move_piece(PieceType pt, Square from, Square to) {
         kingBB ^= moveBB;
         allDefendersBB ^= moveBB;
         kingIndex = to;
-        if (moveBB & EDGE_MASK) {
-            win = Defenders;
-        }
     }
     occupiedBB ^= moveBB;
 }

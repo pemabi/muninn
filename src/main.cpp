@@ -6,6 +6,7 @@
 #include "magics.hpp"
 #include "gameWrapper.hpp"
 #include "config.hpp"
+#include "network.hpp"
 
 std::vector<std::string> load_test_fens(const std::string& filename) {
     std::vector<std::string> fens;
@@ -41,6 +42,7 @@ int main() {
 
     init_table();
     Config::setup_default_config();
+    Network::initialize();
 
     gameWrapper::loop();
 

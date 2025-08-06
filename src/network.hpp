@@ -27,11 +27,13 @@ struct NetworkOutput {
 class Network {
 public:
 
-    static constexpr int NUM_OUPUT_POLICY = 10;
+    static constexpr int NUM_OUPUT_POLICY = 1296;
 
     struct NNPlanes {
 
     };
+
+    static void initialize();
 
     static NetResult get_scored_moves(const BoardHistory& state);
 
@@ -45,6 +47,7 @@ public:
     static int lookup(Move move);
 
 private:
+    static bool initialized;
     static std::unordered_map<Move, int> move_lookup;
 
     static void init_move_map();

@@ -34,10 +34,12 @@ int play_one_game(BoardHistory& bh, AgentFunction attackerAgent, AgentFunction d
 
         bh.do_move(move);
 
-        if (bh.current_pos().winner() != sideNum) {  // if the move is a king capture / king escape
+        Side winner = bh.current_pos().check_winner();
+
+        if (winner != sideNum) {  // if the move is a king capture / king escape
             print_position(bh.current_pos());
-            print_result(static_cast<int>(bh.current_pos().winner()));
-            return bh.current_pos().winner();
+            print_result(static_cast<int>(winner));
+            return winner;
         }
 
         // check for win by repetitions. As this can only be claimed by the Defender, only checking this after Attacker moves

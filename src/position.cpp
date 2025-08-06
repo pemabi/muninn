@@ -85,7 +85,6 @@ Position& Position::set(const std::string& fenStr, StateInfo* si) {
 
   occupiedBB = occupied_from_pieces();
   allDefendersBB = all_defenders_from_pieces();
-  win = sideNum;
 
   ss >> token;
   sideToMove = (token == 'a' ? Attackers : Defenders);
@@ -106,7 +105,6 @@ void Position::clear() {
     kingBB = all_zero_bb();
     allDefendersBB = all_zero_bb();
     occupiedBB = all_zero_bb();
-
     kingIndex = SQ_NONE;
     gamePly = 0;
     sideToMove = Attackers;
@@ -208,7 +206,6 @@ void Position::do_move(Move move, StateInfo& newState) {
     if (kingBB == EMPTY_BB) {
         k ^= Zobrist::psq[King][kingIndex];
         kingIndex = SquareNum;
-        win = Attackers;
     }
 
     state->key = k;
@@ -373,15 +370,20 @@ int Position::repetitions_count() const {
     5. otherwise, sideNum
 */
 Side Position::check_winner() const {
-    if (win != sideNum) {
-        return win;
+
+    if (kingBB == EMPTY_BB) {
+        return Attackers;
     }
+
+    if (kingBB & EDGE_MASK) {
+        return Defenders;
+    }
+
     if (repetitions_count() == 3) {
         return Attackers;
     }
 
-    MoveList move_list(*this);  // is there a way to only generate moveList once? storing it in position seems a bad option UNLESS it is discarded in shallow copy?
-                                // or there is the chance I retroactively add the moveList dependent winning conditions with some early exiting logic? This approach not as clean
+    MoveList move_list(*this);  // could create a member all_to_sqs bitboard that is updated if movelists are made, if movelists would be made prior to this?
     if (move_list.empty()) {
         return ~sideToMove;
     }

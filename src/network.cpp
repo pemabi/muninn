@@ -1,9 +1,19 @@
 #include "network.hpp"
 
+bool Network::initialized = false;
 std::unordered_map<Move, int> Network::move_lookup;
+
+void Network::initialize() {
+    if (initialized) return;
+    initialized = true;
+
+    std::cout<<"initializing network...\n";
+    init_move_map();
+}
 
 void Network::init_move_map() {
     // initialise the move map that can map output vector indices to moves
+    std::cout<<"initializing move map...\n";
 
     std::vector<Move> moves;
 
@@ -63,7 +73,7 @@ NetworkOutput Network::get_filtered_output(const BoardHistory& pos, bool cache) 
 
 int Network::lookup(Move move) {
   // mask off Piece Type
-  std::cout<<"Lookup for move " << move.value() << " | Move from: " << move.from() << " | Move to: " << move.to() << " | Piece: " << move.movedPiece() << "\n";
+  //std::cout<<"Lookup for move " << move.value() << " | Move from: " << move.from() << " | Move to: " << move.to() << " | Piece: " << move.movedPiece() << "\n";
   move = Move(move.value() | PieceNum << 14);  // ugly syntax
 
   return move_lookup.at(move);
