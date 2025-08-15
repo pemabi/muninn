@@ -7,6 +7,7 @@ int cfg_max_nodes;
 int cfg_num_threads;
 float cfg_dirichlet_epsilon;
 float cfg_dirichlet_alpha;
+float cfg_softmax_temp;
 
 void Config::setup_default_config() {
     cfg_verbose = true;
@@ -16,4 +17,6 @@ void Config::setup_default_config() {
     cfg_num_threads = 1;
     cfg_dirichlet_epsilon = 0.25f;
     cfg_dirichlet_alpha = 0.3f;
+
+    cfg_softmax_temp = 1.0f;
 }

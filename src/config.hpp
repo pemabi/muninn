@@ -7,6 +7,7 @@ extern int cfg_max_nodes;
 extern int cfg_num_threads;
 extern float cfg_dirichlet_epsilon;
 extern float cfg_dirichlet_alpha;
+extern float cfg_softmax_temp;
 
 class Config {
 public:
