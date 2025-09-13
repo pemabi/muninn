@@ -48,8 +48,120 @@ void Network::init_move_map() {
     }
 }
 
-void Network::winograd_convolve_in(const std::vector<float>& in, std::vector<float>& V, const int C) {
-    constexpr auto Wpad = 2 + WINO
+void Network::winograd_transform_in(const std::vector<float>& in, std::vector<float>& V, const int C) {
+    constexpr int Wpad = 2 + WINOGRAD_M * WINOGRAD_WTILES;  // padding size is tiles p/dim * output tile size + 2. in 9x9 board case, padded size is 2 + 4 * 3 = 14
+
+    constexpr int buffer_size = 32;  // for batching multiple output tiles
+
+    std::array<std::array<float, Wpad>, Wpad> in_pad{{{0.0f}}};
+
+    std::array<float, buffer_size * WINOGRAD_ALPHA * WINOGRAD_ALPHA> buffer;
+    int buffer_offset = 0;
+    int buffer_entries = 0;
+
+    // lambda for B^T matrix multiplication
+    /*
+    Winograd transformation:
+    https://eng.libretexts.org/Bookshelves/Electrical_Engineering/Signal_Processing_and_Modeling/Fast_Fourier_Transforms_(Burrus)/06%3A_Winograd's_Short_DFT_Algorithms/6.02%3A_Winograd_Fourier_Transform_Algorithm_(WFTA)
+
+    B^T = [1,  0,   -5/2,  0,    1,   0]
+      [0, -√2,   -2,   √2/2,  1,   0]
+      [0,  √2,   -2,  -√2/2,  1,   0]
+      [0, -√2/2, -1/2,  √2,   1,   0]
+      [0,  √2/2, -1/2, -√2,   1,   0]
+      [0,  1,     0,   -5/2,  0,   1]
+    */
+
+    const auto multiply_bt = [](float& o0, float& o1, float& o2,
+                                float& o3, float& o4, float& o5,
+                                const float i0, const float i1, const float i2,
+                                const float i3, const float i4, const float i5) {
+        auto i3m1 = i1 * -SQ2 + i3 * (SQ2 / 2.0f);
+        auto i4m2 = i2 * -2.0f + i4 * 1.0f;
+
+        o0 = i0 + i2 * (-5.0f / 2.0f) + i4;
+        o1 = i3m1 + i4m2;
+        o2 = -i3m1 + i4m2;
+
+        auto i3m1_2 = i3 * (SQ2) + i1 * (-SQ2 / 2.0f);
+        auto i4m2_2 = i2 * (-1.0f / 2.0f) + i4;
+
+        o3 = i3m1_2 + i4m2_2;
+        o4 = -i3m1_2 + i4m2_2;
+
+        o5 = i1 + i3 * (-5.0f / 2.0f) + i5;
+    };
+
+    for (int ch = 0; ch < C; ch++) {
+        for (int yin = 0; yin < 9; yin++) {
+            for (int xin = 0; xin < 9; xin++) {
+                in_pad[yin + 1][xin + 1] = in[ch * (9 * 9) + yin * 9 + xin]; // +1 for padding top and left. rest of padding bottom / right (asymmetric)
+            }
+        }
+        for (int block_y = 0; block_y < WINOGRAD_WTILES; block_y++) {
+            const auto yin = WINOGRAD_M * block_y;
+            for (int block_x = 0; block_x < WINOGRAD_WTILES; block_x++) {
+                const auto xin = WINOGRAD_M * block_x;
+
+    #define DECL_T1(XX)                                                            \
+        float T1_##XX##_0, T1_##XX##_1, T1_##XX##_2, T1_##XX##_3, T1_##XX##_4,     \
+            T1_##XX##_5;
+                DECL_T1(0)
+                DECL_T1(1)
+                DECL_T1(2)
+                DECL_T1(3)
+                DECL_T1(4)
+                DECL_T1(5)
+
+    #define MULTIPLY_BT(XX)                                                        \
+        multiply_bt(T1_0_##XX, T1_1_##XX, T1_2_##XX, T1_3_##XX, T1_4_##XX,         \
+                T1_5_##XX,                                                     \
+                in_pad[yin + 0][xin + XX],                                     \
+                in_pad[yin + 1][xin + XX],                                     \
+                in_pad[yin + 2][xin + XX],                                     \
+                in_pad[yin + 3][xin + XX],                                     \
+                in_pad[yin + 4][xin + XX],                                     \
+                in_pad[yin + 5][xin + XX]);
+                MULTIPLY_BT(0)
+                MULTIPLY_BT(1)
+                MULTIPLY_BT(2)
+                MULTIPLY_BT(3)
+                MULTIPLY_BT(4)
+                MULTIPLY_BT(5)
+
+    #define MULTIPLY_B(XX)                                                         \
+        multiply_bt(                                                               \
+            buffer[buffer_size * (XX * WINOGRAD_ALPHA + 0) + buffer_entries],       \
+            buffer[buffer_size * (XX * WINOGRAD_ALPHA + 1) + buffer_entries],       \
+            buffer[buffer_size * (XX * WINOGRAD_ALPHA + 2) + buffer_entries],       \
+            buffer[buffer_size * (XX * WINOGRAD_ALPHA + 3) + buffer_entries],       \
+            buffer[buffer_size * (XX * WINOGRAD_ALPHA + 4) + buffer_entries],       \
+            buffer[buffer_size * (XX * WINOGRAD_ALPHA + 5) + buffer_entries],       \
+            T1_##XX##_0, T1_##XX##_1, T1_##XX##_2, T1_##XX##_3, T1_##XX##_4,       \
+            T1_##XX##_5);
+                    MULTIPLY_B(0)
+                    MULTIPLY_B(1)
+                    MULTIPLY_B(2)
+                    MULTIPLY_B(3)
+                    MULTIPLY_B(4)
+                    MULTIPLY_B(5)
+
+                    if (buffer_entries == 0) {
+                        buffer_offset = ch * WINOGRAD_P + block_y * WINOGRAD_WTILES + block_x;
+                    }
+                    buffer_entries++;
+
+                    if (buffer_entries >= buffer_size || (ch == C - 1 && block_x == WINOGRAD_WTILES - 1 && block_y == WINOGRAD_WTILES - 1)) {
+                        for (int i = 0; i < WINOGRAD_ALPHA * WINOGRAD_ALPHA; i++) {
+                            for (int entry = 0; entry < buffer_entries; entry++) {
+                                V[i * C * WINOGRAD_P + buffer_offset + entry] = buffer[i * buffer_size + entry];
+                            }
+                        }
+                        buffer_entries = 0;
+                    }
+            }
+        }
+    }
 }
 
 // https://arxiv.org/pdf/1509.09308

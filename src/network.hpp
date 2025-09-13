@@ -45,6 +45,7 @@ public:
     static constexpr int WINOGRAD_WTILES = 9 / WINOGRAD_M + (9 % WINOGRAD_M != 0); // num tiles p/ dim (ceiling division)
     static constexpr int WINOGRAD_TILE = WINOGRAD_ALPHA * WINOGRAD_ALPHA; // elements in winograd space
     static constexpr int WINOGRAD_P = WINOGRAD_WTILES * WINOGRAD_WTILES; // total tiles needed to cover board
+    static constexpr float SQ2 = 1.4142135623730951f; // Square root of 2
 
     using BoardPlane = std::bitset<9 * 9>;
     using net_t = float;
@@ -76,7 +77,7 @@ private:
                                             std::vector<float>& M,
                                             std::vector<float>& output);
     static void winograd_transform_in(const std::vector<float>& in,
-                                      std::vector<float>&)
+                                      std::vector<float>& V, const int C);
     static void forward_cpu(std::vector<float>& input, std::vector<float>& output_pol, std::vector<float>& output_val);
 
 
