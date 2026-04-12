@@ -376,8 +376,6 @@ void Network::gather_features(const BoardHistory& bh, NNPlanes& planes) {
 
     int bh_idx = bh.positions.size() - 1;
 
-    Side side = pos->side_to_move();
-
     for (int i = 0; i < std::min(T_HISTORY, bh_idx + 1); ++i) {
         pos = &bh.positions[bh_idx - i];
 
