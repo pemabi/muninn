@@ -52,7 +52,7 @@ Position& Position::set(const std::string& fenStr, StateInfo* si) {
 
   ss >> std::noskipws;
 
-  clear();
+  clear();  // TODO: clean this up with the memsets above - not so streamlined
 
   while ((ss >> token) && !isspace(token)) {
       if (isdigit(token)) {  // empties

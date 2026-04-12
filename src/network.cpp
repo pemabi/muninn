@@ -221,9 +221,9 @@ void inner_product(const std::vector<float>& input,
     cblas_sgemv(CblasRowMajor, CblasNoTrans, outputs, inputs, 1.0, &weights[0], inputs, &input[0], 1, 0.0f, &output[0], 1);
     // output[i] = Σ(weights[i][j] * input[j]) for j = 0 to inputs-1
 
-    float lambda_ReLU = [](float val) { return (val > 0.0f) ? val : 0.0f; };
+    auto lambda_ReLU = [](float val) { return (val > 0.0f) ? val : 0.0f; };  // lamda func to implement ReLU
 
-    for (unsigned int o = 0; o < outputs; 0++) {
+    for (unsigned int o = 0; o < outputs; o++) {
         float val = biases[o] + output[o];
         if (outputs == Network::NUM_VALUE_CHANNELS) {
             val = lambda_ReLU(val);
@@ -343,6 +343,28 @@ void add_pieces(const Position* pos, Side side, Network::NNPlanes& planes, int p
     }
 }
 
+void add_attackers(const Position* pos, Network::NNPlanes& planes, int plane_idx) {
+    Bitboard attacker_pieces = pos->attacker_bb();
+    while (attacker_pieces.is_not_empty()) {
+          Square sq = attacker_pieces.bitscan_pop_forward();
+          planes.bit[plane_idx][sq] = true;
+      }
+}
+
+void add_defenders(const Position* pos, Network::NNPlanes& planes, int plane_idx) {
+    Bitboard defender_pieces = pos->defender_bb();
+    while (defender_pieces.is_not_empty()) {
+          Square sq = defender_pieces.bitscan_pop_forward();
+          planes.bit[plane_idx][sq] = true;
+      }
+}
+
+void add_king(const Position* pos, Network::NNPlanes& planes, int plane_idx) {
+    Square king_idx = pos->king_index();
+    planes.bit[plane_idx][king_idx] = true;
+}
+
+
 void Network::gather_features(const BoardHistory& bh, NNPlanes& planes) {
     Side us = bh.current_pos().side_to_move();
     Side them = ~us;
@@ -359,9 +381,9 @@ void Network::gather_features(const BoardHistory& bh, NNPlanes& planes) {
     for (int i = 0; i < std::min(T_HISTORY, bh_idx + 1); ++i) {
         pos = &bh.positions[bh_idx - i];
 
-        add_pieces<Attacker>(pos, side, planes, i * T_PLANES + 0);
-        add_pieces<Defender>(pos, side, planes, i * T_PLANES + 1);
-        add_pieces<King    >(pos, side, planes, i * T_PLANES + 2);
+        add_attackers(pos, planes, i * T_PLANES + 0);
+        add_defenders(pos, planes, i * T_PLANES + 1);
+        add_king(pos, planes, i * T_PLANES + 2);
 
         int repetitions = pos->repetitions_count();
         if (repetitions >= 1) planes.bit[i * T_PLANES + 3].set();

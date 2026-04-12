@@ -41,7 +41,6 @@ class Position  {
 public:
     // representation of inital position
     // static const CodedPos
-
     static const char* StartFEN;
 
     Position() = default;
@@ -96,11 +95,12 @@ private:
     Bitboard allDefendersBB;
     Bitboard occupiedBB;
 
-    Square kingIndex;
+    Square kingIndex; // confusing now that I have an index
+
     int gamePly;
     Side sideToMove;
 
-    StateInfo* state; // TODO: change code so that only references to this member are called state
+    StateInfo* state;
 };
 
 inline Side Position::side_to_move() const {

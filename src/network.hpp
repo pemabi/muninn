@@ -70,7 +70,7 @@ private:
     static void init_move_map();
 
     static void softmax(const std::vector<float>& input, std::vector<float>& output, float temperature = 1.0f);
-    static void Network::winograd_convolve(const int outputs,
+    static void winograd_convolve(const int outputs,
                                             const std::vector<float>& input,
                                             const std::vector<float>& U,
                                             std::vector<float>& V,
